@@ -66,11 +66,17 @@ interface MinimalChatProps {
  * input validation, and quick action buttons.
  */
 export default function MinimalChat({ className }: MinimalChatProps) {
-  // Initialize with a welcome message - using a fixed timestamp for initial state
+  // Initialize with a personalized welcome message
   const initialMessage: Message = {
     id: "initial-1",
     role: "assistant",
-    content: "Hola, ¿en qué puedo ayudarte?",
+    content: `¡Hola! 👋 Soy Stephan Barker, Desarrollador Full Stack & Asesor Digital.
+
+Con más de 8 años de experiencia, me especializo en transformar ideas en productos digitales escalables. Trabajo con tecnologías modernas como Next.js, TypeScript y Supabase, combinando la agilidad del desarrollo No-Code/WordPress con la potencia del código a medida.
+
+Este es mi portafolio personal, donde puedes conocer más sobre mi experiencia, proyectos y habilidades técnicas.
+
+¿Te gustaría saber más sobre algo en particular? Puedes hacerme cualquier pregunta o usar las sugerencias que aparecen abajo. ¡Estoy aquí para ayudarte! 😊`,
     timestamp: 0,
   };
 

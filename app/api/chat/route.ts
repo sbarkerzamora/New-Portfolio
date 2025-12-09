@@ -51,9 +51,17 @@ export async function POST(req: Request) {
 function buildSystemPrompt(profile: Awaited<ReturnType<typeof loadProfile>>) {
   const hero = profile.perfil_profesional;
   const stats = profile.estadisticas;
-  const areas = profile.areas_enfoque
-    .map((a) => `${a.categoria}: ${a.habilidades.join(", ")}`)
-    .join(" | ");
+  const stack = profile.stack_tecnologico;
+  
+  // Build stack technology string
+  const stackTech = [
+    `Frontend: ${stack.frontend_moderno.join(", ")}`,
+    `Backend: ${stack.backend_y_datos.join(", ")}`,
+    `DevOps: ${stack.devops_e_infraestructura.join(", ")}`,
+    `Pagos: ${stack.pagos_y_comercio.join(", ")}`,
+    `Herramientas: ${stack.herramientas_y_flujo.join(", ")}`,
+  ].join(" | ");
+  
   const experiencia = profile.experiencia_laboral
     .map((e) => `${e.empresa ?? e.rol ?? "Experiencia"}: ${e.descripcion}`)
     .join(" | ");
@@ -65,7 +73,7 @@ function buildSystemPrompt(profile: Awaited<ReturnType<typeof loadProfile>>) {
     "Eres un asistente en tono profesional y cercano que responde sobre Stephan Barker.",
     `Nombre: ${hero.nombre}. Título: ${hero.titulo_principal}. Resumen: ${hero.resumen_perfil}`,
     `Experiencia: ${experiencia}`,
-    `Áreas de enfoque: ${areas}`,
+    `Stack tecnológico: ${stackTech}`,
     `Proyectos: ${proyectos}`,
     `Estadísticas clave: experiencia ${stats.anos_experiencia}, proyectos ${stats.proyectos_exitosos}, clientes ${stats.clientes_satisfechos}`,
     "Si no encuentras la respuesta en los datos, indica que no está en el perfil.",
