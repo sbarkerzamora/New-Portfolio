@@ -1,0 +1,95 @@
+{
+  "perfil_profesional": {
+    "nombre": "Stephan Barker",
+    "titulo_principal": "ASESOR DIGITAL",
+    "resumen_perfil": "Soy un desarrollador web enfocado en la rentabilidad y la funcionalidad... convertirlos en sitios que inspiren y faciliten la vida de quienes los utilizan.",
+    "descripcion_hero": "Apasionado por crear experiencias digitales impactantes. Más de 8 años de experiencia en WordPress, WooCommerce & Elementor, enfocándome en transformar ideas en proyectos exitosos.",
+    "navegacion": [
+      "Inicio",
+      "Sobre mí",
+      "Experiencia",
+      "Proyectos",
+      "Contacto"
+    ]
+  },
+  "estadisticas": {
+    "anos_experiencia": "+8",
+    "proyectos_exitosos": "+20",
+    "clientes_satisfechos": "+15"
+  },
+  "areas_enfoque": [
+    {
+      "categoria": "Desarrollo",
+      "habilidades": [
+        "Desarrollo Web",
+        "WordPress",
+        "WooCommerce",
+        "Elementor"
+      ]
+    },
+    {
+      "categoria": "Estrategia y Tech",
+      "habilidades": [
+        "Transformación Digital",
+        "Frontend Development",
+        "Blockchain"
+      ]
+    }
+  ],
+  "experiencia_laboral": [
+    {
+      "empresa": "Polygon CRM",
+      "descripcion": "Trabajo enfocado en el desarrollo y la implementación de estrategias CRM, liderando equipos y optimizando procesos de ventas y marketing."
+    },
+    {
+      "rol": "Asesor de Transformación Digital",
+      "periodo": "2018 - 2021",
+      "descripcion": "Asesoramiento en procesos de transformación digital, ayudando a implementar nuevas tecnologías y optimizar la presencia en línea para el crecimiento de la empresa."
+    },
+    {
+      "rol": "Freelancer – Desarrollo Web",
+      "descripcion": "Trabajo independiente ofreciendo servicios de desarrollo web, personalización y mantenimiento para empresas. Uso de herramientas como WordPress y WooCommerce."
+    },
+    {
+      "empresa": "White Shark Media",
+      "rol": "Supervisor del departamento Creativo & Web",
+      "descripcion": "Supervisión y dirección del equipo creativo y de diseño, asegurando la calidad visual y técnica de los entregables a los clientes."
+    }
+  ],
+  "proyectos_destacados": [
+    {
+      "nombre": "Tu Menú Digital",
+      "descripcion": "Plataforma para crear menús digitales interactivos para restaurantes, mejorando la experiencia del cliente."
+    },
+    {
+      "nombre": "Polygon CRM",
+      "descripcion": "Desarrollo y diseño para la plataforma de CRM, enfocada en la gestión de clientes y automatización."
+    },
+    {
+      "nombre": "Doctor Wise",
+      "descripcion": "Solución digital para el sector salud, facilitando la conexión entre doctores y pacientes."
+    },
+    {
+      "nombre": "Dra. Alma Sánchez",
+      "descripcion": "Sitio web de marca personal para servicios médicos profesionales."
+    },
+    {
+      "nombre": "Hurtado Arquitectos",
+      "descripcion": "Portafolio web para firma de arquitectos, destacando proyectos visuales y diseño minimalista."
+    },
+    {
+      "nombre": "Excello BPO",
+      "descripcion": "Sitio web corporativo para empresa de BPO, mostrando servicios de outsourcing y contact center."
+    },
+    {
+      "nombre": "Interface Outsourcing",
+      "descripcion": "Página web para empresa de outsourcing, enfocada en soluciones empresariales y atracción de clientes."
+    }
+  ],
+  "contacto": {
+    "call_to_action": "TRABAJEMOS JUNTOS",
+    "subtitulo": "¿Tienes un proyecto en mente? Estoy aquí para ayudarte a darle vida a tus ideas.",
+    "texto_boton": "RESERVA UNA CITA"
+  }
+}
+
