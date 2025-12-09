@@ -304,6 +304,15 @@ const shouldShowTechnologies = (content: string, messageId: string): boolean => 
   return hasMarquee || (hasShowPhrase && hasTech && !hasProjects);
 };
 
+// Helper function to extract text content from UIMessage parts
+const getMessageText = (msg: UIMessage): string => {
+  if (!msg.parts || msg.parts.length === 0) return "";
+  return msg.parts
+    .filter((part): part is { type: "text"; text: string } => part.type === "text")
+    .map((part) => part.text)
+    .join("");
+};
+
 export default function MinimalChat({ className, onContactRequest }: MinimalChatProps) {
   // Get Cal.com context to show calendar in chat
   const { showCalendar, setShowCalendar } = useCalModal();
@@ -348,23 +357,26 @@ export default function MinimalChat({ className, onContactRequest }: MinimalChat
     messages: [{
       id: "initial-1",
       role: "assistant",
-      content: `¡Hola! 👋 Soy Stephan Barker.
+      parts: [{
+        type: "text",
+        text: `¡Hola! 👋 Soy Stephan Barker.
 
 Tengo más de 8 años transformando ideas en productos digitales que realmente funcionan. Me apasiona encontrar ese punto perfecto entre la velocidad del desarrollo y la calidad del código.
 
 He trabajado en proyectos como Tu Menú Digital (una plataforma completa para restaurantes), Polygon CRM, y varios sitios corporativos. Mi stack favorito incluye Next.js, TypeScript y Supabase, pero también domino WordPress cuando la situación lo requiere.
 
 Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría saber? Puedes preguntarme sobre mis proyectos, tecnologías que uso, mi experiencia, o cualquier cosa que te interese. ¡Estoy aquí para conversar! 😊`,
+      }],
     }],
   });
 
   // Update connection status based on chat status
   useEffect(() => {
-    if (status === "in_progress") {
+    if (status === "submitted" || status === "streaming") {
       setConnectionStatus("connecting");
     } else if (status === "error") {
       setConnectionStatus("error");
-    } else if (status === "awaiting_message" || status === "streaming") {
+    } else if (status === "ready") {
       setConnectionStatus("connected");
     } else {
       setConnectionStatus("idle");
@@ -385,19 +397,25 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
   // Convert AI SDK messages to our Message format
   const messages = useMemo(() => {
     return aiMessages.map((msg, index) => {
+      // Extract text content from parts
+      const content = getMessageText(msg);
+      
       // For assistant messages, check the previous user message to understand context
       let userQuery = "";
       if (msg.role === "assistant" && index > 0) {
         const prevMsg = aiMessages[index - 1];
-        if (prevMsg.role === "user") {
-          userQuery = prevMsg.content.toLowerCase();
+        if (prevMsg) {
+          const prevRole: string = prevMsg.role;
+          if (prevRole === "user") {
+            userQuery = getMessageText(prevMsg).toLowerCase();
+          }
         }
       }
       
       // Determine what to show based on both LLM response and user query
-      const content = msg.content.toLowerCase();
-      const hasCarouselPhrase = content.includes("carrusel") || (content.includes("aquí tienes") && (content.includes("proyecto") || content.includes("portafolio")));
-      const hasMarqueePhrase = content.includes("marquee") || (content.includes("aquí tienes") && (content.includes("tecnolog") || content.includes("stack")));
+      const contentLower = content.toLowerCase();
+      const hasCarouselPhrase = contentLower.includes("carrusel") || (contentLower.includes("aquí tienes") && (contentLower.includes("proyecto") || contentLower.includes("portafolio")));
+      const hasMarqueePhrase = contentLower.includes("marquee") || (contentLower.includes("aquí tienes") && (contentLower.includes("tecnolog") || contentLower.includes("stack")));
       
       // If user asked about projects, show projects carousel
       const userAskedProjects = userQuery.includes("proyecto") || userQuery.includes("portafolio");
@@ -409,8 +427,8 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       return {
         id: msg.id,
         role: msg.role as "user" | "assistant",
-        content: msg.content,
-        timestamp: msg.createdAt?.getTime() ?? Date.now(),
+        content: content,
+        timestamp: (msg as any).createdAt?.getTime() ?? Date.now(),
         showProjects: msg.role === "assistant" && msg.id !== "initial-1" && (hasCarouselPhrase || (userAskedProjects && !userAskedTech && !userAskedContact)),
         showTechnologies: msg.role === "assistant" && msg.id !== "initial-1" && (hasMarqueePhrase || (userAskedTech && !userAskedProjects && !userAskedContact)),
         showCalendar: msg.role === "assistant" && msg.id !== "initial-1" && userAskedContact,
@@ -611,20 +629,23 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     const lastMessage = aiMessages[aiMessages.length - 1];
     if (lastMessage && lastMessage.role === "assistant") {
       const userMessage = aiMessages[aiMessages.length - 2];
-      const userQuery = userMessage?.role === "user" ? userMessage.content.toLowerCase() : "";
-      
-      // Check if user asked about contact or if assistant mentioned booking/reservation
-      if (
-        userQuery.includes("contacto") ||
-        userQuery.includes("contact") ||
-        userQuery.includes("cita") ||
-        userQuery.includes("reservar")
-      ) {
-        // Show calendar in chat
-        setShowCalendar(true);
-        // Notify parent if callback provided
-        if (onContactRequest) {
-          onContactRequest();
+      if (userMessage) {
+        const userRole: string = userMessage.role;
+        const userQuery = userRole === "user" ? getMessageText(userMessage).toLowerCase() : "";
+        
+        // Check if user asked about contact or if assistant mentioned booking/reservation
+        if (
+          userQuery.includes("contacto") ||
+          userQuery.includes("contact") ||
+          userQuery.includes("cita") ||
+          userQuery.includes("reservar")
+        ) {
+          // Show calendar in chat
+          setShowCalendar(true);
+          // Notify parent if callback provided
+          if (onContactRequest) {
+            onContactRequest();
+          }
         }
       }
     }
@@ -635,9 +656,10 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     if (showCalendar) {
       // When calendar is shown externally (e.g., from footer), send a message
       const contactPrompt = "¿Cómo puedo contactarte?";
-      const hasContactMessage = aiMessages.some(msg => 
-        msg.role === "user" && msg.content.toLowerCase().includes("contacto")
-      );
+      const hasContactMessage = aiMessages.some(msg => {
+        const role: string = msg.role;
+        return role === "user" && getMessageText(msg).toLowerCase().includes("contacto");
+      });
       
       if (!hasContactMessage) {
         // Send message directly
@@ -794,13 +816,13 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
           className={styles.input}
           aria-label="Mensaje de chat"
           aria-invalid={!!error}
-          disabled={status === "in_progress" || status === "streaming"}
+          disabled={status === "submitted" || status === "streaming"}
         />
         <Button
           type="submit"
           size="icon"
           className={styles.sendButton}
-          disabled={!input.trim() || status === "in_progress" || status === "streaming"}
+          disabled={!input.trim() || status === "submitted" || status === "streaming"}
           aria-label="Enviar mensaje"
         >
           <Send className="h-4 w-4" />

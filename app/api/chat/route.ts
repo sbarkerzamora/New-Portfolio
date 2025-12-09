@@ -13,11 +13,28 @@ const MODELS = [
 
 export const runtime = "nodejs";
 
+// Helper function to extract text content from UIMessage parts (AI SDK v5 format)
+function extractTextFromMessage(msg: any): string {
+  // If message has 'parts' (AI SDK v5 format), extract text from parts
+  if (msg.parts && Array.isArray(msg.parts)) {
+    return msg.parts
+      .filter((part: any) => part.type === "text" && part.text)
+      .map((part: any) => part.text)
+      .join("");
+  }
+  // Fallback to 'content' field (legacy format)
+  return String(msg.content || "").trim();
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { messages } = body as {
-      messages: { role: "system" | "user" | "assistant"; content: string }[];
+      messages: Array<{
+        role: "system" | "user" | "assistant";
+        content?: string;
+        parts?: Array<{ type: string; text?: string }>;
+      }>;
     };
 
     // Validate messages
@@ -33,6 +50,16 @@ export async function POST(req: Request) {
     console.log("Received messages:", {
       count: messages.length,
       lastMessage: messages[messages.length - 1],
+      hasParts: messages[messages.length - 1]?.parts !== undefined,
+      hasContent: messages[messages.length - 1]?.content !== undefined,
+      allMessages: messages.map((msg, idx) => ({
+        index: idx,
+        role: msg.role,
+        hasParts: !!msg.parts,
+        hasContent: !!msg.content,
+        partsLength: msg.parts?.length || 0,
+        contentPreview: msg.content?.substring(0, 50) || extractTextFromMessage(msg).substring(0, 50),
+      })),
     });
 
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -77,14 +104,26 @@ export async function POST(req: Request) {
 
     // Validate and clean messages
     // Ensure messages are in the correct format for the AI SDK
+    // Convert from UIMessage format (with parts) to CoreMessage format (with content)
     const cleanedMessages = conversationMessages
-      .map((msg) => {
+      .map((msg, idx) => {
         // Ensure role is valid
         const role = msg.role === "system" ? "user" : (msg.role as "user" | "assistant");
-        const content = String(msg.content || "").trim();
+        
+        // Extract text content from parts (AI SDK v5) or content (legacy)
+        const content = extractTextFromMessage(msg);
+        
+        console.log(`Processing message ${idx}:`, {
+          role,
+          contentLength: content.length,
+          contentPreview: content.substring(0, 50),
+          hasParts: !!msg.parts,
+          hasContent: !!msg.content,
+        });
         
         // Skip empty messages
         if (!content || content.length === 0) {
+          console.warn(`Skipping empty message at index ${idx}`);
           return null;
         }
         
