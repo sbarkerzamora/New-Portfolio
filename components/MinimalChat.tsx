@@ -41,15 +41,204 @@ const WELCOME_CONTENT = {
   message: "Escribe tu mensaje y presiona Enter. Tu historial de chat es limitado.",
 };
 
-// Quick action prompts
-const QUICK_ACTIONS = [
-  { label: "Habilidades", prompt: "¿Qué habilidades tienes?" },
-  { label: "Tecnologías", prompt: "¿Qué tecnologías usas?" },
-  { label: "Experiencia", prompt: "Cuéntame sobre tu experiencia" },
-  { label: "Proyectos", prompt: "¿Qué proyectos has realizado?" },
-  { label: "Contacto", prompt: "¿Cómo puedo contactarte?" },
-  { label: "Descargar CV", prompt: "¿Puedo descargar tu CV?", action: "download-cv" },
+// Base quick actions pool - all available suggestions
+const ALL_QUICK_ACTIONS = [
+  { label: "Habilidades", prompt: "¿Qué habilidades tienes?", keywords: ["habilidad", "skill", "capacidad", "aptitud"] },
+  { label: "Tecnologías", prompt: "¿Qué tecnologías usas?", keywords: ["tecnolog", "stack", "herramienta", "framework", "librería"] },
+  { label: "Experiencia", prompt: "Cuéntame sobre tu experiencia", keywords: ["experiencia", "trabajo", "laboral", "empresa", "carrera"] },
+  { label: "Proyectos", prompt: "¿Qué proyectos has realizado?", keywords: ["proyecto", "portafolio", "trabajo", "aplicación", "app"] },
+  { label: "Contacto", prompt: "¿Cómo puedo contactarte?", keywords: ["contacto", "contact", "cita", "reservar", "reunión"] },
+  { label: "Descargar CV", prompt: "¿Puedo descargar tu CV?", action: "download-cv", keywords: ["cv", "curriculum", "resumen", "descargar"] },
+  { label: "Valores", prompt: "¿Cuáles son tus valores profesionales?", keywords: ["valor", "filosofía", "principio", "ética"] },
+  { label: "Logros", prompt: "¿Cuáles son tus logros destacados?", keywords: ["logro", "éxito", "logrado", "conquista", "hito"] },
+  { label: "Enfoque", prompt: "¿Cuál es tu enfoque de trabajo?", keywords: ["enfoque", "metodología", "proceso", "trabajo"] },
+  { label: "GitHub", prompt: "¿Puedo ver tu código en GitHub?", keywords: ["github", "código", "repositorio", "open source"] },
+  { label: "Docker", prompt: "¿Cómo usas Docker en tus proyectos?", keywords: ["docker", "contenedor", "deployment", "devops"] },
+  { label: "Next.js", prompt: "¿Por qué eliges Next.js?", keywords: ["next.js", "nextjs", "react", "framework"] },
+  { label: "Supabase", prompt: "¿Cómo usas Supabase?", keywords: ["supabase", "backend", "base de datos", "bdd"] },
+  { label: "WordPress", prompt: "¿Trabajas con WordPress?", keywords: ["wordpress", "cms", "woocommerce"] },
+  { label: "Stripe", prompt: "¿Has integrado pagos con Stripe?", keywords: ["stripe", "pago", "payment", "transacción"] },
 ];
+
+/**
+ * Generates dynamic quick actions based on conversation context
+ * 
+ * Analyzes the conversation flow and suggests relevant topics that:
+ * - Haven't been discussed yet
+ * - Are related to current topics
+ * - Are complementary to the conversation
+ * 
+ * @param messages - Array of conversation messages
+ * @param maxSuggestions - Maximum number of suggestions to show (default: 5)
+ * @returns Array of relevant quick actions
+ */
+function generateDynamicSuggestions(messages: Message[], maxSuggestions: number = 5): typeof ALL_QUICK_ACTIONS {
+  // Initial state: show general, welcoming suggestions
+  if (messages.length === 0 || (messages.length === 1 && messages[0].id === "initial-1")) {
+    return [
+      ALL_QUICK_ACTIONS.find(a => a.label === "Tecnologías")!,
+      ALL_QUICK_ACTIONS.find(a => a.label === "Proyectos")!,
+      ALL_QUICK_ACTIONS.find(a => a.label === "Experiencia")!,
+      ALL_QUICK_ACTIONS.find(a => a.label === "Habilidades")!,
+      ALL_QUICK_ACTIONS.find(a => a.label === "Contacto")!,
+    ].filter(Boolean);
+  }
+
+  // Get recent conversation context (last 6 messages for better context)
+  const recentMessages = messages.slice(-6);
+  const conversationText = recentMessages
+    .map(msg => msg.content.toLowerCase())
+    .join(" ");
+
+  // Track mentioned topics with their frequency
+  const mentionedTopics = new Map<string, number>();
+  
+  // Check which topics have been mentioned and how often
+  ALL_QUICK_ACTIONS.forEach(action => {
+    let mentionCount = 0;
+    action.keywords.forEach(keyword => {
+      // Count keyword occurrences
+      const regex = new RegExp(keyword, "gi");
+      const matches = conversationText.match(regex);
+      if (matches) {
+        mentionCount += matches.length;
+      }
+    });
+    if (mentionCount > 0) {
+      mentionedTopics.set(action.label, mentionCount);
+    }
+  });
+
+  // Define topic relationships for better suggestions
+  const topicRelations: Record<string, string[]> = {
+    "Tecnologías": ["Next.js", "Docker", "Supabase", "Stripe", "WordPress"],
+    "Proyectos": ["GitHub", "Experiencia", "Tecnologías"],
+    "Experiencia": ["Logros", "Enfoque", "Valores"],
+    "Habilidades": ["Tecnologías", "Experiencia"],
+    "Next.js": ["Supabase", "Docker", "Proyectos"],
+    "Docker": ["DevOps", "Deployment", "Tecnologías"],
+    "Supabase": ["Backend", "Base de datos", "Tecnologías"],
+    "Stripe": ["Pagos", "Proyectos", "Tecnologías"],
+    "WordPress": ["CMS", "Proyectos", "Tecnologías"],
+  };
+
+  // Score actions based on relevance
+  const scoredActions = ALL_QUICK_ACTIONS.map(action => {
+    let score = 0;
+    const isMentioned = mentionedTopics.has(action.label);
+    const mentionCount = mentionedTopics.get(action.label) || 0;
+
+    // Penalize heavily mentioned topics (unless it's CV which is always useful)
+    if (isMentioned && action.action !== "download-cv") {
+      if (mentionCount > 2) {
+        score -= 5; // Heavily penalize if mentioned multiple times
+      } else {
+        score -= 2; // Lightly penalize if mentioned once
+      }
+    }
+
+    // Boost related topics
+    const relatedTopics = topicRelations[action.label] || [];
+    relatedTopics.forEach(relatedTopic => {
+      if (mentionedTopics.has(relatedTopic)) {
+        score += 3; // Strong boost for related topics
+      }
+    });
+
+    // Check for semantic relationships in conversation
+    action.keywords.forEach(keyword => {
+      // Find related actions that share context
+      const relatedActions = ALL_QUICK_ACTIONS.filter(a => 
+        a.label !== action.label && 
+        a.keywords.some(k => {
+          // Check if keywords are semantically related
+          const relatedPairs = [
+            ["proyecto", "portafolio", "trabajo"],
+            ["tecnolog", "stack", "herramienta", "framework"],
+            ["experiencia", "trabajo", "empresa", "carrera"],
+            ["habilidad", "skill", "capacidad"],
+            ["docker", "deployment", "devops", "contenedor"],
+            ["next.js", "react", "frontend"],
+            ["supabase", "backend", "base de datos"],
+          ];
+          return relatedPairs.some(pair => 
+            pair.includes(keyword) && pair.includes(k)
+          );
+        })
+      );
+
+      relatedActions.forEach(relatedAction => {
+        if (mentionedTopics.has(relatedAction.label)) {
+          score += 2; // Boost for semantically related topics
+        }
+      });
+    });
+
+    // Always prioritize CV download (but not if already mentioned multiple times)
+    if (action.action === "download-cv" && mentionCount < 2) {
+      score += 5;
+    }
+
+    // Prioritize general topics if conversation is just starting
+    if (messages.length <= 3) {
+      if (["Habilidades", "Tecnologías", "Experiencia", "Proyectos"].includes(action.label)) {
+        score += 2;
+      }
+    }
+
+    // Boost complementary topics (e.g., if talking about projects, suggest technologies)
+    const lastUserMessage = recentMessages.filter(m => m.role === "user").pop();
+    if (lastUserMessage) {
+      const lastUserText = lastUserMessage.content.toLowerCase();
+      
+      if (lastUserText.includes("proyecto") && action.label === "Tecnologías") {
+        score += 4;
+      }
+      if (lastUserText.includes("tecnolog") && action.label === "Proyectos") {
+        score += 4;
+      }
+      if (lastUserText.includes("experiencia") && action.label === "Logros") {
+        score += 3;
+      }
+      if (lastUserText.includes("trabajo") && action.label === "Enfoque") {
+        score += 3;
+      }
+    }
+
+    // Boost contact if conversation is getting deep
+    if (messages.length > 4 && action.label === "Contacto" && !isMentioned) {
+      score += 2;
+    }
+
+    return { action, score };
+  });
+
+  // Sort by score and take top suggestions
+  const topSuggestions = scoredActions
+    .sort((a, b) => b.score - a.score)
+    .filter(item => item.score > -3) // Filter out heavily penalized items
+    .slice(0, maxSuggestions)
+    .map(item => item.action);
+
+  // Ensure we always have enough suggestions
+  if (topSuggestions.length < maxSuggestions) {
+    const generalActions = ALL_QUICK_ACTIONS.filter(
+      action => !topSuggestions.includes(action) && (mentionedTopics.get(action.label) || 0) < 2
+    );
+    topSuggestions.push(...generalActions.slice(0, maxSuggestions - topSuggestions.length));
+  }
+
+  // Ensure CV is always available (but not if already shown multiple times)
+  const hasCV = topSuggestions.some(a => a.action === "download-cv");
+  const cvMentionCount = mentionedTopics.get("Descargar CV") || 0;
+  if (!hasCV && cvMentionCount < 2) {
+    // Replace the lowest priority suggestion with CV
+    topSuggestions.pop();
+    topSuggestions.push(ALL_QUICK_ACTIONS.find(a => a.action === "download-cv")!);
+  }
+
+  return topSuggestions;
+}
 
 /**
  * Message type definition
@@ -136,6 +325,37 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     maxSteps: 1,
     onError: (error) => {
       console.error("useChat onError:", error);
+      console.error("Error details:", {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+      });
+    },
+    onResponse: async (response) => {
+      console.log("Chat API response status:", response.status);
+      if (!response.ok) {
+        console.error("Chat API error response:", {
+          status: response.status,
+          statusText: response.statusText,
+        });
+        // Try to read the error body
+        try {
+          const errorText = await response.text();
+          console.error("Error response body:", errorText);
+        } catch (e) {
+          console.error("Could not read error response body:", e);
+        }
+      } else {
+        // Log response headers for debugging
+        console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+      }
+    },
+    onFinish: (message) => {
+      console.log("Chat message finished:", {
+        id: message.id,
+        role: message.role,
+        contentLength: message.content?.length,
+      });
     },
   });
 
@@ -250,8 +470,19 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     // Clear error
     setError("");
 
+    console.log("Submitting message:", {
+      input: trimmedInput,
+      isLoading,
+      messageCount: aiMessages.length,
+    });
+
     // Use AI SDK's handleSubmit which will call the API
-    aiHandleSubmit(e);
+    try {
+      aiHandleSubmit(e);
+    } catch (submitError) {
+      console.error("Error in handleSubmit:", submitError);
+      setError("Error al enviar el mensaje. Por favor, intenta de nuevo.");
+    }
   };
 
   /**
@@ -286,6 +517,8 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
    * Or handles special actions like CV download
    */
   const handleQuickAction = (prompt: string, action?: string) => {
+    console.log("Quick action clicked:", { prompt, action, isLoading });
+    
     // Handle special actions
     if (action === "download-cv") {
       handleDownloadCV();
@@ -293,21 +526,30 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     }
 
     const trimmedPrompt = prompt.trim();
-    if (!trimmedPrompt) return;
+    if (!trimmedPrompt) {
+      console.warn("Empty prompt in quick action");
+      return;
+    }
 
     setError("");
 
-    // Set the input and submit using AI SDK
-    handleInputChange({ target: { value: trimmedPrompt } } as React.ChangeEvent<HTMLInputElement>);
-    
-    // Wait a bit for the input to update, then submit
-    setTimeout(() => {
-      const syntheticEvent = {
-        preventDefault: () => {},
-      } as React.FormEvent<HTMLFormElement>;
+    try {
+      // Set the input and submit using AI SDK
+      handleInputChange({ target: { value: trimmedPrompt } } as React.ChangeEvent<HTMLInputElement>);
       
-      aiHandleSubmit(syntheticEvent);
-    }, 50);
+      // Wait a bit for the input to update, then submit
+      setTimeout(() => {
+        const syntheticEvent = {
+          preventDefault: () => {},
+        } as React.FormEvent<HTMLFormElement>;
+        
+        console.log("Submitting quick action:", trimmedPrompt);
+        aiHandleSubmit(syntheticEvent);
+      }, 50);
+    } catch (error) {
+      console.error("Error in handleQuickAction:", error);
+      setError("Error al procesar la acción rápida. Por favor, intenta de nuevo.");
+    }
   };
 
   /**
@@ -317,21 +559,37 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     return messages.slice(-MAX_MESSAGES);
   }, [messages]);
 
+  /**
+   * Generate dynamic suggestions based on conversation context
+   */
+  const dynamicSuggestions = useMemo(() => {
+    return generateDynamicSuggestions(messages, 5);
+  }, [messages]);
+
   // Update error state from AI SDK with better error handling
   useEffect(() => {
     if (aiError) {
       console.error("Chat error from AI SDK:", aiError);
+      console.error("Error object details:", {
+        message: aiError.message,
+        name: aiError.name,
+        stack: aiError.stack,
+        cause: (aiError as any).cause,
+      });
       
       // Provide more specific error messages
       let errorMessage = "Hubo un error al procesar tu mensaje. Por favor, intenta de nuevo.";
       
       if (aiError.message) {
-        if (aiError.message.includes("API key")) {
+        const errorMsgLower = aiError.message.toLowerCase();
+        if (errorMsgLower.includes("api key") || errorMsgLower.includes("unauthorized")) {
           errorMessage = "Error de configuración: La clave de API no está configurada correctamente.";
-        } else if (aiError.message.includes("network") || aiError.message.includes("fetch")) {
+        } else if (errorMsgLower.includes("network") || errorMsgLower.includes("fetch") || errorMsgLower.includes("failed to fetch")) {
           errorMessage = "Error de conexión. Por favor, verifica tu conexión a internet e intenta de nuevo.";
-        } else if (aiError.message.includes("rate limit")) {
+        } else if (errorMsgLower.includes("rate limit") || errorMsgLower.includes("too many")) {
           errorMessage = "Demasiadas solicitudes. Por favor, espera un momento e intenta de nuevo.";
+        } else if (errorMsgLower.includes("timeout")) {
+          errorMessage = "La solicitud tardó demasiado. Por favor, intenta de nuevo.";
         } else {
           // In development, show more details
           if (process.env.NODE_ENV === "development") {
@@ -341,6 +599,9 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       }
       
       setError(errorMessage);
+    } else {
+      // Clear error when there's no error
+      setError("");
     }
   }, [aiError]);
 
@@ -475,15 +736,18 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
             ))}
             <div ref={messagesEndRef} />
             
-            {/* Quick actions - inside messages area */}
+            {/* Dynamic quick actions - inside messages area */}
             <div className={styles.quickActions}>
-              {QUICK_ACTIONS.map((action) => (
+              {dynamicSuggestions.map((action, index) => (
                 <button
                   key={action.label}
                   type="button"
                   onClick={() => handleQuickAction(action.prompt, (action as any).action)}
                   className={styles.quickActionButton}
                   aria-label={`Acción rápida: ${action.label}`}
+                  style={{
+                    animationDelay: `${index * 50}ms`,
+                  }}
                 >
                   {action.label}
                 </button>

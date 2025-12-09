@@ -23,6 +23,12 @@ export async function POST(req: Request) {
       );
     }
 
+    // Log incoming messages for debugging
+    console.log("Received messages:", {
+      count: messages.length,
+      lastMessage: messages[messages.length - 1],
+    });
+
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       console.error("OPENROUTER_API_KEY not set");
@@ -56,26 +62,121 @@ export async function POST(req: Request) {
       },
     });
 
+    // Log API key status (without exposing the key)
+    console.log("OpenRouter configuration:", {
+      hasApiKey: !!apiKey,
+      apiKeyLength: apiKey?.length || 0,
+      baseURL: "https://openrouter.ai/api/v1",
+      model: MODEL,
+    });
+
     // Filter out system messages from the messages array (they should only be in system prompt)
     const conversationMessages = messages.filter(
       (msg) => msg.role !== "system"
     );
 
+    // Validate and clean messages
+    // Ensure messages are in the correct format for the AI SDK
+    const cleanedMessages = conversationMessages
+      .map((msg) => {
+        // Ensure role is valid
+        const role = msg.role === "system" ? "user" : (msg.role as "user" | "assistant");
+        const content = String(msg.content || "").trim();
+        
+        // Skip empty messages
+        if (!content || content.length === 0) {
+          return null;
+        }
+        
+        return {
+          role,
+          content,
+        };
+      })
+      .filter((msg): msg is { role: "user" | "assistant"; content: string } => msg !== null);
+
+    if (cleanedMessages.length === 0) {
+      console.error("No valid messages after cleaning");
+      return NextResponse.json(
+        { error: "No valid messages" },
+        { status: 400 },
+      );
+    }
+
     console.log("Sending request to OpenRouter:", {
       model: MODEL,
-      messageCount: conversationMessages.length,
+      messageCount: cleanedMessages.length,
       hasSystemPrompt: !!systemPrompt,
+      lastMessage: cleanedMessages[cleanedMessages.length - 1]?.content?.substring(0, 50),
+      messages: cleanedMessages.map(m => ({ role: m.role, contentLength: m.content.length })),
     });
 
-    const result = await streamText({
-      model: openai(MODEL),
-      system: systemPrompt,
-      messages: conversationMessages,
-      temperature: 0.5,
-      maxTokens: 400,
-    });
+    try {
+      // Try to get the text stream first to catch any immediate errors
+      const result = await streamText({
+        model: openai(MODEL),
+        system: systemPrompt,
+        messages: cleanedMessages,
+        temperature: 0.5,
+        maxTokens: 400,
+        onFinish: async ({ text, finishReason, usage, warnings }) => {
+          console.log("Stream finished successfully:", {
+            textLength: text?.length,
+            finishReason,
+            usage,
+            warnings: warnings?.length || 0,
+          });
+        },
+        onError: (error: unknown) => {
+          console.error("Stream error in streamText onError callback:", error);
+          const errorDetails = error instanceof Error 
+            ? {
+                message: error.message,
+                name: error.name,
+                stack: error.stack,
+                cause: (error as any)?.cause,
+              }
+            : { error: String(error) };
+          console.error("Stream error details:", errorDetails);
+        },
+      });
 
-    return result.toDataStreamResponse();
+      console.log("StreamText result created successfully");
+      
+      // Return the data stream response directly
+      // The AI SDK handles the proper headers and format
+      const response = result.toDataStreamResponse();
+      
+      console.log("Response created:", {
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+      });
+      
+      return response;
+    } catch (streamError) {
+      console.error("Error in streamText:", streamError);
+      
+      // If it's an error from the AI SDK, try to extract more details
+      const errorDetails = streamError instanceof Error 
+        ? {
+            message: streamError.message,
+            name: streamError.name,
+            stack: streamError.stack,
+          }
+        : { error: String(streamError) };
+      
+      console.error("Stream error details:", errorDetails);
+      
+      // Return a proper error response that the client can handle
+      return NextResponse.json(
+        {
+          error: "Error processing stream",
+          message: streamError instanceof Error ? streamError.message : "Unknown error",
+          details: process.env.NODE_ENV === "development" ? errorDetails : undefined,
+        },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Chat API error:", error);
     
