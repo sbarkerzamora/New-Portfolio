@@ -78,22 +78,58 @@
       "nombre": "Proyectos Open Source / GitHub",
       "categoria": "Desarrollo Full Stack",
       "tecnologias": ["Next.js", "TypeScript", "Supabase"],
-      "descripcion": "Colección de repositorios con implementaciones de autenticación, CRUDs y arquitecturas escalables."
+      "descripcion": "Colección de repositorios con implementaciones de autenticación, CRUDs y arquitecturas escalables.",
+      "imagen": "/projects/github.png",
+      "enlace": "https://github.com/sbarkerzamora/"
     },
     {
       "nombre": "Tu Menú Digital",
       "categoria": "Producto Digital",
-      "descripcion": "Plataforma para crear menús digitales interactivos para restaurantes."
+      "descripcion": "Plataforma para crear menús digitales interactivos para restaurantes.",
+      "imagen": "/projects/tumenudigital.png",
+      "enlace": "https://tumenudigital.app/"
     },
     {
       "nombre": "Polygon CRM",
       "categoria": "SaaS / CRM",
-      "descripcion": "Desarrollo y diseño para plataforma de gestión de clientes y automatización."
+      "descripcion": "Desarrollo y diseño para plataforma de gestión de clientes y automatización.",
+      "imagen": "/projects/polygoncrm.png",
+      "enlace": "https://polygoncrm.com/"
     },
     {
       "nombre": "Doctor Wise",
       "categoria": "Salud / App",
-      "descripcion": "Solución digital facilitando la conexión y gestión de citas entre doctores y pacientes."
+      "descripcion": "Solución digital facilitando la conexión y gestión de citas entre doctores y pacientes.",
+      "imagen": "/projects/doctorwise.png",
+      "enlace": "https://doctorwise.cloud/"
+    },
+    {
+      "nombre": "Dra. Alma Sánchez",
+      "categoria": "Salud / Marca Personal",
+      "descripcion": "Sitio web de marca personal para servicios médicos profesionales.",
+      "imagen": "/projects/dralmasanchez.png",
+      "enlace": "https://dralmasanchez.com/"
+    },
+    {
+      "nombre": "Hurtado Arquitectos",
+      "categoria": "Portafolio / Arquitectura",
+      "descripcion": "Portafolio web para firma de arquitectos, destacando proyectos visuales y diseño minimalista.",
+      "imagen": "/projects/hurtadoarquitectos.png",
+      "enlace": "https://www.hurtadoarq.com/"
+    },
+    {
+      "nombre": "Excello BPO",
+      "categoria": "Corporativo / BPO",
+      "descripcion": "Sitio web corporativo para empresa de BPO, mostrando servicios de outsourcing y contact center.",
+      "imagen": "/projects/excellobpo.png",
+      "enlace": "https://excellobpo.com/"
+    },
+    {
+      "nombre": "Interface Outsourcing",
+      "categoria": "Corporativo / Outsourcing",
+      "descripcion": "Página web para empresa de outsourcing, enfocada en soluciones empresariales y atracción de clientes.",
+      "imagen": "/projects/interfaceoutsourcing.png",
+      "enlace": "https://interfaceoutsourcing.com/"
     }
   ],
   "contacto": {

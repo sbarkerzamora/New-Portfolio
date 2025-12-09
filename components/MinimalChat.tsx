@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import styles from "./MinimalChat.module.css";
+import ProjectsCarousel from "./ProjectsCarousel";
+import profileData from "@/docs/profile.json";
 
 // Maximum number of messages to display
 const MAX_MESSAGES = 10;
@@ -50,6 +52,7 @@ export type Message = {
   role: "user" | "assistant";
   content: string;
   timestamp: number;
+  showProjects?: boolean; // Flag to show projects carousel
 };
 
 /**
@@ -83,24 +86,16 @@ Este es mi portafolio personal, donde puedes conocer más sobre mi experiencia, 
   const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem(WELCOME_MESSAGE_KEY);
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   // Use a counter to ensure unique message IDs
   const messageIdCounter = useRef(0);
 
-  /**
-   * Checks if welcome message should be shown
-   * Uses localStorage to track if user has already seen it
-   */
-  useEffect(() => {
-    // Check if welcome message was already dismissed
-    const wasDismissed = localStorage.getItem(WELCOME_MESSAGE_KEY);
-    
-    // Only show welcome message if it hasn't been dismissed
-    if (!wasDismissed) {
-      setShowWelcome(true);
-    }
-  }, []);
+  // Proyectos desde el perfil (para el carousel)
+  const projects = profileData.proyectos_destacados ?? [];
 
   /**
    * Handles welcome message dismissal
@@ -130,23 +125,38 @@ Este es mi portafolio personal, donde puedes conocer más sobre mi experiencia, 
    * Generates a simple response based on user input
    * In a real implementation, this would call an API
    */
-  const generateResponse = (userMessage: string): string => {
+  const generateResponse = (userMessage: string): { content: string; showProjects: boolean } => {
     const lowerMessage = userMessage.toLowerCase();
     
     if (lowerMessage.includes("habilidad") || lowerMessage.includes("skill")) {
-      return "Tengo experiencia en desarrollo web, WordPress, WooCommerce y Elementor. También trabajo con transformación digital y desarrollo frontend.";
+      return { 
+        content: "Tengo experiencia en desarrollo web, WordPress, WooCommerce y Elementor. También trabajo con transformación digital y desarrollo frontend.",
+        showProjects: false
+      };
     }
     if (lowerMessage.includes("experiencia") || lowerMessage.includes("año")) {
-      return "Tengo más de 8 años de experiencia trabajando en desarrollo web y transformación digital. He trabajado en empresas como Polygon CRM y White Shark Media.";
+      return { 
+        content: "Tengo más de 8 años de experiencia trabajando en desarrollo web y transformación digital. He trabajado en empresas como Polygon CRM y White Shark Media.",
+        showProjects: false
+      };
     }
     if (lowerMessage.includes("proyecto") || lowerMessage.includes("portafolio")) {
-      return "He trabajado en proyectos como Tu Menú Digital, Polygon CRM, Doctor Wise, y varios sitios web corporativos. ¿Te gustaría conocer más detalles de alguno?";
+      return { 
+        content: "¡Claro! Aquí tienes algunos de mis proyectos destacados. Puedes usar las flechas para navegar entre ellos.",
+        showProjects: true
+      };
     }
     if (lowerMessage.includes("contacto") || lowerMessage.includes("contact")) {
-      return "Puedes contactarme a través del botón 'Reserva una cita' o escribirme directamente. Estoy disponible para proyectos nuevos.";
+      return { 
+        content: "Puedes contactarme a través del botón 'Reserva una cita' o escribirme directamente. Estoy disponible para proyectos nuevos.",
+        showProjects: false
+      };
     }
     
-    return "Gracias por tu mensaje. ¿Hay algo específico sobre mi experiencia o proyectos que te gustaría conocer?";
+    return { 
+      content: "Gracias por tu mensaje. ¿Hay algo específico sobre mi experiencia o proyectos que te gustaría conocer?",
+      showProjects: false
+    };
   };
 
   /**
@@ -189,11 +199,13 @@ Este es mi portafolio personal, donde puedes conocer más sobre mi experiencia, 
 
     // Add assistant response after a short delay (simulating API call)
     setTimeout(() => {
+      const response = generateResponse(trimmedInput);
       const assistantMessage: Message = {
         id: assistantMessageId,
         role: "assistant",
-        content: generateResponse(trimmedInput),
+        content: response.content,
         timestamp: Date.now(),
+        showProjects: response.showProjects,
       };
 
       setMessages((prev) => {
@@ -257,10 +269,16 @@ Este es mi portafolio personal, donde puedes conocer más sobre mi experiencia, 
                 key={message.id}
                 className={cn(
                   styles.messageBubble,
-                  message.role === "user" ? styles.userMessage : styles.assistantMessage
+                  message.role === "user" ? styles.userMessage : styles.assistantMessage,
+                  message.showProjects && styles.messageWithProjects
                 )}
               >
                 <span className={styles.messageContent}>{message.content}</span>
+                {message.showProjects && projects.length > 0 && (
+                  <div className={styles.projectsInMessage}>
+                    <ProjectsCarousel projects={projects} />
+                  </div>
+                )}
               </div>
             ))}
             <div ref={messagesEndRef} />

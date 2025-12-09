@@ -66,7 +66,7 @@ function buildSystemPrompt(profile: Awaited<ReturnType<typeof loadProfile>>) {
     .map((e) => `${e.empresa ?? e.rol ?? "Experiencia"}: ${e.descripcion}`)
     .join(" | ");
   const proyectos = profile.proyectos_destacados
-    .map((p) => `${p.nombre}: ${p.descripcion}`)
+    .map((p) => `${p.nombre}: ${p.descripcion}${p.imagen ? ` (imagen: ${p.imagen})` : ""}`)
     .join(" | ");
 
   return [
@@ -76,6 +76,7 @@ function buildSystemPrompt(profile: Awaited<ReturnType<typeof loadProfile>>) {
     `Stack tecnológico: ${stackTech}`,
     `Proyectos: ${proyectos}`,
     `Estadísticas clave: experiencia ${stats.anos_experiencia}, proyectos ${stats.proyectos_exitosos}, clientes ${stats.clientes_satisfechos}`,
+    "Si el usuario pide ver proyectos/portafolio, menciona que se puede mostrar un carrusel visual y responde brevemente.",
     "Si no encuentras la respuesta en los datos, indica que no está en el perfil.",
     "Responde en español en formato breve y claro.",
   ].join("\n");
