@@ -20,7 +20,8 @@ import { Send, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useChat } from "ai/react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport, type UIMessage } from "ai";
 import { useCalModal } from "@/contexts/CalModalContext";
 import Cal, { getCalApi } from "@calcom/embed-react";
 import styles from "./MinimalChat.module.css";
@@ -307,11 +308,44 @@ export default function MinimalChat({ className, onContactRequest }: MinimalChat
   // Get Cal.com context to show calendar in chat
   const { showCalendar, setShowCalendar } = useCalModal();
   const [calLoaded, setCalLoaded] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<"idle" | "connecting" | "connected" | "error">("idle");
+  const [currentModel, setCurrentModel] = useState<string>("");
+  const [error, setError] = useState("");
+  const [showWelcome, setShowWelcome] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !localStorage.getItem(WELCOME_MESSAGE_KEY);
+  });
+
+  // Local state for input (AI SDK v5 doesn't provide input state)
+  const [input, setInput] = useState("");
+
+  // Create HTTP transport for useChat using DefaultChatTransport
+  const transport = useMemo(() => {
+    return new DefaultChatTransport<UIMessage>({
+      api: "/api/chat",
+      headers: async () => {
+        return {
+          "Content-Type": "application/json",
+        };
+      },
+      fetch: async (url, options) => {
+        const response = await fetch(url, options);
+        
+        // Extract model from headers for connection indicator
+        const modelHeader = response.headers.get("x-model-used");
+        if (modelHeader) {
+          setCurrentModel(modelHeader);
+        }
+        
+        return response;
+      },
+    });
+  }, []);
 
   // Use AI SDK for chat functionality
-  const { messages: aiMessages, input: aiInput, handleInputChange, handleSubmit: aiHandleSubmit, isLoading, error: aiError } = useChat({
-    api: "/api/chat",
-    initialMessages: [{
+  const { messages: aiMessages, sendMessage, error: aiError, status } = useChat({
+    transport,
+    messages: [{
       id: "initial-1",
       role: "assistant",
       content: `¡Hola! 👋 Soy Stephan Barker.
@@ -322,42 +356,20 @@ He trabajado en proyectos como Tu Menú Digital (una plataforma completa para re
 
 Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría saber? Puedes preguntarme sobre mis proyectos, tecnologías que uso, mi experiencia, o cualquier cosa que te interese. ¡Estoy aquí para conversar! 😊`,
     }],
-    maxSteps: 1,
-    onError: (error) => {
-      console.error("useChat onError:", error);
-      console.error("Error details:", {
-        message: error?.message,
-        stack: error?.stack,
-        name: error?.name,
-      });
-    },
-    onResponse: async (response) => {
-      console.log("Chat API response status:", response.status);
-      if (!response.ok) {
-        console.error("Chat API error response:", {
-          status: response.status,
-          statusText: response.statusText,
-        });
-        // Try to read the error body
-        try {
-          const errorText = await response.text();
-          console.error("Error response body:", errorText);
-        } catch (e) {
-          console.error("Could not read error response body:", e);
-        }
-      } else {
-        // Log response headers for debugging
-        console.log("Response headers:", Object.fromEntries(response.headers.entries()));
-      }
-    },
-    onFinish: (message) => {
-      console.log("Chat message finished:", {
-        id: message.id,
-        role: message.role,
-        contentLength: message.content?.length,
-      });
-    },
   });
+
+  // Update connection status based on chat status
+  useEffect(() => {
+    if (status === "in_progress") {
+      setConnectionStatus("connecting");
+    } else if (status === "error") {
+      setConnectionStatus("error");
+    } else if (status === "awaiting_message" || status === "streaming") {
+      setConnectionStatus("connected");
+    } else {
+      setConnectionStatus("idle");
+    }
+  }, [status]);
 
   // Initialize Cal.com API when calendar should be shown
   useEffect(() => {
@@ -406,11 +418,6 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     });
   }, [aiMessages]);
 
-  const [error, setError] = useState("");
-  const [showWelcome, setShowWelcome] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !localStorage.getItem(WELCOME_MESSAGE_KEY);
-  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Proyectos desde el perfil (para el carousel)
@@ -455,13 +462,13 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
 
   /**
    * Handles message submission
-   * Uses AI SDK's handleSubmit which calls the API
+   * Uses AI SDK's sendMessage which calls the API
    */
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Validate input using AI SDK's input
-    const trimmedInput = aiInput.trim();
+    // Validate input
+    const trimmedInput = input.trim();
     if (!trimmedInput) {
       setError("Por favor, escribe un mensaje antes de enviar.");
       return;
@@ -469,16 +476,18 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
 
     // Clear error
     setError("");
+    setConnectionStatus("connecting");
 
     console.log("Submitting message:", {
       input: trimmedInput,
-      isLoading,
+      status,
       messageCount: aiMessages.length,
     });
 
-    // Use AI SDK's handleSubmit which will call the API
+    // Use AI SDK's sendMessage which will call the API
     try {
-      aiHandleSubmit(e);
+      sendMessage({ text: trimmedInput });
+      setInput(""); // Clear input after sending
     } catch (submitError) {
       console.error("Error in handleSubmit:", submitError);
       setError("Error al enviar el mensaje. Por favor, intenta de nuevo.");
@@ -517,7 +526,7 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
    * Or handles special actions like CV download
    */
   const handleQuickAction = (prompt: string, action?: string) => {
-    console.log("Quick action clicked:", { prompt, action, isLoading });
+    console.log("Quick action clicked:", { prompt, action, status });
     
     // Handle special actions
     if (action === "download-cv") {
@@ -532,20 +541,12 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     }
 
     setError("");
+    setConnectionStatus("connecting");
 
     try {
-      // Set the input and submit using AI SDK
-      handleInputChange({ target: { value: trimmedPrompt } } as React.ChangeEvent<HTMLInputElement>);
-      
-      // Wait a bit for the input to update, then submit
-      setTimeout(() => {
-        const syntheticEvent = {
-          preventDefault: () => {},
-        } as React.FormEvent<HTMLFormElement>;
-        
-        console.log("Submitting quick action:", trimmedPrompt);
-        aiHandleSubmit(syntheticEvent);
-      }, 50);
+      // Send message directly using AI SDK's sendMessage
+      console.log("Submitting quick action:", trimmedPrompt);
+      sendMessage({ text: trimmedPrompt });
     } catch (error) {
       console.error("Error in handleQuickAction:", error);
       setError("Error al procesar la acción rápida. Por favor, intenta de nuevo.");
@@ -639,20 +640,41 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       );
       
       if (!hasContactMessage) {
-        // Set input and submit
-        handleInputChange({ target: { value: contactPrompt } } as React.ChangeEvent<HTMLInputElement>);
-        setTimeout(() => {
-          const syntheticEvent = {
-            preventDefault: () => {},
-          } as React.FormEvent<HTMLFormElement>;
-          aiHandleSubmit(syntheticEvent);
-        }, 100);
+        // Send message directly
+        sendMessage({ text: contactPrompt });
       }
     }
-  }, [showCalendar, aiMessages, handleInputChange, aiHandleSubmit]);
+  }, [showCalendar, aiMessages, sendMessage]);
 
   return (
     <div className={cn(styles.chatContainer, className)}>
+      {/* Connection indicator (fixed, compact, minimal) */}
+      <div
+        className={styles.connectionIndicator}
+        title={currentModel ? `Modelo en uso: ${currentModel}` : "Modelo no informado"}
+      >
+        <span
+          className={cn(
+            styles.statusDot,
+            connectionStatus === "connected"
+              ? styles.statusConnected
+              : connectionStatus === "connecting"
+              ? styles.statusConnecting
+              : connectionStatus === "error"
+              ? styles.statusError
+              : styles.statusIdle
+          )}
+          aria-label={`Estado: ${connectionStatus}`}
+        />
+        <span className={styles.statusLabel}>
+          {connectionStatus === "connected" && "Conectado"}
+          {connectionStatus === "connecting" && "Conectando"}
+          {connectionStatus === "error" && "Error"}
+          {connectionStatus === "idle" && "En espera"}
+        </span>
+        {currentModel && <span className={styles.modelBadge}>{currentModel}</span>}
+      </div>
+
       {/* Avatar and title section */}
       <div className={styles.avatarSection}>
         <div className={styles.avatarContainer}>
@@ -763,22 +785,22 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       {/* Input form */}
       <form onSubmit={handleSubmit} className={styles.inputForm}>
         <Input
-          value={aiInput}
+          value={input}
           onChange={(e) => {
-            handleInputChange(e);
+            setInput(e.target.value);
             setError("");
           }}
           placeholder="Escribe tu mensaje..."
           className={styles.input}
           aria-label="Mensaje de chat"
           aria-invalid={!!error}
-          disabled={isLoading}
+          disabled={status === "in_progress" || status === "streaming"}
         />
         <Button
           type="submit"
           size="icon"
           className={styles.sendButton}
-          disabled={!aiInput.trim() || isLoading}
+          disabled={!input.trim() || status === "in_progress" || status === "streaming"}
           aria-label="Enviar mensaje"
         >
           <Send className="h-4 w-4" />

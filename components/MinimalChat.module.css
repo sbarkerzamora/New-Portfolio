@@ -17,6 +17,62 @@
   height: 100%;
 }
 
+/* Connection indicator (compact, sticky) */
+.connectionIndicator {
+  position: sticky;
+  top: 0.5rem;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  z-index: 20;
+}
+
+.statusDot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.statusConnected {
+  background: #22c55e;
+}
+
+.statusConnecting {
+  background: #f59e0b;
+}
+
+.statusError {
+  background: #ef4444;
+}
+
+.statusIdle {
+  background: #9ca3af;
+}
+
+.statusLabel {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.modelBadge {
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  background: rgba(109, 93, 252, 0.15);
+  border: 1px solid rgba(109, 93, 252, 0.25);
+  color: hsl(var(--primary));
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
 /* Avatar section */
 .avatarSection {
   display: flex;
@@ -395,6 +451,18 @@
     gap: 0.625rem;
     display: flex;
     flex-direction: column;
+  }
+
+  .connectionIndicator {
+    top: 0.25rem;
+    padding: 0.3rem 0.55rem;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+  }
+
+  .statusDot {
+    width: 0.5rem;
+    height: 0.5rem;
   }
 
   .avatarSection {

@@ -11,10 +11,12 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.0.22",
+    "@ai-sdk/react": "^2.0.109",
     "@calcom/embed-react": "^1.5.3",
+    "@nanostores/react": "github:ai/react",
+    "@openrouter/ai-sdk-provider": "^1.4.1",
     "@react-pdf/renderer": "^4.3.1",
-    "ai": "^4.1.45",
+    "ai": "^5.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "gsap": "^3.14.1",

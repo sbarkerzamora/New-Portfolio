@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { streamText } from "ai";
 import { loadProfile } from "@/lib/profile";
 
-const MODEL = "openai/gpt-oss-20b:free";
+const MODELS = [
+  "openai/gpt-oss-20b:free@npm",
+  "openai/gpt-oss-120b:free",
+  "z-ai/glm-4.5-air:free",
+  "moonshotai/kimi-k2:free",
+  "google/gemma-3n-e2b-it:free",
+];
 
 export const runtime = "nodejs";
 
@@ -52,22 +58,16 @@ export async function POST(req: Request) {
 
     const systemPrompt = buildSystemPrompt(profile);
 
-    // Create OpenAI provider with OpenRouter configuration
-    const openai = createOpenAI({
+    // Create OpenRouter provider
+    const openrouter = createOpenRouter({
       apiKey,
-      baseURL: "https://openrouter.ai/api/v1",
-      headers: {
-        "HTTP-Referer": process.env.OPENROUTER_SITE || "http://localhost:3000",
-        "X-Title": "Stephan Barker AI Chat",
-      },
     });
 
     // Log API key status (without exposing the key)
     console.log("OpenRouter configuration:", {
       hasApiKey: !!apiKey,
       apiKeyLength: apiKey?.length || 0,
-      baseURL: "https://openrouter.ai/api/v1",
-      model: MODEL,
+      models: MODELS,
     });
 
     // Filter out system messages from the messages array (they should only be in system prompt)
@@ -104,79 +104,147 @@ export async function POST(req: Request) {
     }
 
     console.log("Sending request to OpenRouter:", {
-      model: MODEL,
+      models: MODELS,
       messageCount: cleanedMessages.length,
       hasSystemPrompt: !!systemPrompt,
       lastMessage: cleanedMessages[cleanedMessages.length - 1]?.content?.substring(0, 50),
       messages: cleanedMessages.map(m => ({ role: m.role, contentLength: m.content.length })),
     });
 
-    try {
-      // Try to get the text stream first to catch any immediate errors
-      const result = await streamText({
-        model: openai(MODEL),
-        system: systemPrompt,
-        messages: cleanedMessages,
-        temperature: 0.5,
-        maxTokens: 400,
-        onFinish: async ({ text, finishReason, usage, warnings }) => {
-          console.log("Stream finished successfully:", {
-            textLength: text?.length,
-            finishReason,
-            usage,
-            warnings: warnings?.length || 0,
-          });
-        },
-        onError: (error: unknown) => {
-          console.error("Stream error in streamText onError callback:", error);
-          const errorDetails = error instanceof Error 
-            ? {
-                message: error.message,
-                name: error.name,
-                stack: error.stack,
-                cause: (error as any)?.cause,
-              }
-            : { error: String(error) };
-          console.error("Stream error details:", errorDetails);
-        },
-      });
+    // Try models in order until one succeeds
+    let lastError: unknown = null;
+    for (const modelName of MODELS) {
+      console.log("Attempting model:", modelName);
+      try {
+        const result = await streamText({
+          model: openrouter.chat(modelName),
+          system: systemPrompt,
+          messages: cleanedMessages,
+          temperature: 0.5,
+          abortSignal: AbortSignal.timeout(30000), // 30 second timeout
+          onFinish: async ({ text, finishReason, usage, warnings }) => {
+            console.log("Stream finished successfully:", {
+              model: modelName,
+              textLength: text?.length,
+              finishReason,
+              usage,
+              warnings: warnings?.length || 0,
+            });
+          },
+          onError: (error: unknown) => {
+            console.error("Stream error in streamText onError callback:", { model: modelName, error });
+            const errorDetails = error instanceof Error 
+              ? {
+                  message: error.message,
+                  name: error.name,
+                  stack: error.stack,
+                  cause: (error as any)?.cause,
+                }
+              : { error: String(error) };
+            console.error("Stream error details:", errorDetails);
+            
+            // Propagate the error so the request fails fast
+            throw error instanceof Error ? error : new Error(String(error));
+          },
+        });
 
-      console.log("StreamText result created successfully");
-      
-      // Return the data stream response directly
-      // The AI SDK handles the proper headers and format
-      const response = result.toDataStreamResponse();
-      
-      console.log("Response created:", {
-        status: response.status,
-        headers: Object.fromEntries(response.headers.entries()),
-      });
-      
-      return response;
-    } catch (streamError) {
-      console.error("Error in streamText:", streamError);
-      
-      // If it's an error from the AI SDK, try to extract more details
-      const errorDetails = streamError instanceof Error 
-        ? {
-            message: streamError.message,
-            name: streamError.name,
-            stack: streamError.stack,
+        console.log("StreamText result created successfully", { model: modelName });
+        
+        // Try to create the stream response - this will throw if there's an error
+        let response: Response;
+        try {
+          response = result.toUIMessageStreamResponse();
+        } catch (responseError) {
+          console.error("Error creating stream response:", { model: modelName, error: responseError });
+          
+          // Check if this is a retryable error
+          const errorMsg = responseError instanceof Error ? responseError.message : String(responseError);
+          const isRetryableError = errorMsg.toLowerCase().includes("rate limit") || 
+                                  errorMsg.toLowerCase().includes("429") ||
+                                  errorMsg.toLowerCase().includes("server error");
+          
+          if (isRetryableError) {
+            lastError = errorMsg;
+            continue;
           }
-        : { error: String(streamError) };
-      
-      console.error("Stream error details:", errorDetails);
-      
-      // Return a proper error response that the client can handle
-      return NextResponse.json(
-        {
-          error: "Error processing stream",
-          message: streamError instanceof Error ? streamError.message : "Unknown error",
-          details: process.env.NODE_ENV === "development" ? errorDetails : undefined,
-        },
-        { status: 500 }
-      );
+          
+          throw responseError;
+        }
+
+        // Add a header to expose which model was used (for UI indicator)
+        const headers = new Headers(response.headers);
+        headers.set("x-model-used", modelName);
+        
+        console.log("Response created:", {
+          model: modelName,
+          status: response.status,
+          headers: Object.fromEntries(headers.entries()),
+        });
+        
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        });
+      } catch (streamError) {
+        lastError = streamError;
+
+        // Extract error message and status
+        const errorMsg = streamError instanceof Error ? streamError.message : String(streamError);
+        const errorStatus = (streamError as any)?.statusCode ?? (streamError as any)?.status;
+        
+        // Check for rate limit or retriable error to continue with next model
+        const isRetryable = (() => {
+          const msgLower = errorMsg.toLowerCase();
+          if (msgLower.includes("rate limit") || msgLower.includes("429")) return true;
+          if (msgLower.includes("server error") || msgLower.includes("500") || msgLower.includes("502") || msgLower.includes("503")) return true;
+          const status = errorStatus;
+          return status === 429 || (status >= 500 && status < 600);
+        })();
+
+        console.error("Error in streamText for model:", { 
+          model: modelName, 
+          error: streamError,
+          errorMessage: errorMsg,
+          errorStatus,
+          isRetryable,
+        });
+
+        if (isRetryable) {
+          console.warn("Retrying with next model due to retryable error/rate limit");
+          continue;
+        }
+
+        // Non-retryable: return immediately with a user-friendly error
+        const errorDetails = streamError instanceof Error 
+          ? {
+              message: streamError.message,
+              name: streamError.name,
+              stack: process.env.NODE_ENV === "development" ? streamError.stack : undefined,
+            }
+          : { error: String(streamError) };
+        
+        return NextResponse.json(
+          {
+            error: "Error processing stream",
+            message: errorMsg || "Unknown error",
+            modelTried: modelName,
+            details: process.env.NODE_ENV === "development" ? errorDetails : undefined,
+          },
+          { status: errorStatus && typeof errorStatus === "number" ? errorStatus : 500 }
+        );
+      }
     }
+
+    // If all models failed
+    console.error("All model attempts failed", { lastError });
+    return NextResponse.json(
+      {
+        error: "All models failed or rate-limited",
+        message: lastError instanceof Error ? lastError.message : String(lastError ?? "Unknown error"),
+      },
+      { status: 500 }
+    );
   } catch (error) {
     console.error("Chat API error:", error);
     

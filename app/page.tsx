@@ -21,12 +21,14 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import MinimalChat from "@/components/MinimalChat";
 import DecryptedText from "@/components/DecryptedText";
+import InfoModal from "@/components/InfoModal";
 import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
 import styles from "./page.module.css";
 
 function HomeContent() {
   const { openCalendar } = useCalModal();
   const chatRef = React.useRef<{ triggerContact: () => void } | null>(null);
+  const [isInfoOpen, setIsInfoOpen] = React.useState(false);
 
   /**
    * Handles CV download
@@ -80,7 +82,12 @@ function HomeContent() {
             className={styles.decryptedText}
           />
         </div>
-        <Button variant="ghost" size="icon" aria-label="Sobre">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Sobre"
+          onClick={() => setIsInfoOpen(true)}
+        >
           <Info className="h-5 w-5" />
         </Button>
       </header>
@@ -89,6 +96,19 @@ function HomeContent() {
       <main className={styles.mainContent}>
         <MinimalChat onContactRequest={() => openCalendar()} />
       </main>
+
+      <InfoModal
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+        repoUrl="https://github.com/sbarkerzamora/New-Portfolio.git"
+        projectName="Portfolio de Stephan Barker"
+        summary="Código abierto, minimalista y listo para reutilizar. Usa Next.js + TypeScript con animaciones suaves, chat embebido y flujos listos para booking y descarga de CV."
+        highlights={[
+          "Stack listo para producción: Next.js, TypeScript, diseño responsive.",
+          "Componentes listos: chat minimalista, modal de booking y CV generado.",
+          "Fácil de adaptar: textos y enlaces configurables desde props.",
+        ]}
+      />
 
       {/* Compact footer */}
       <footer className={styles.footer}>
