@@ -1,13 +1,18 @@
 {
   "perfil_profesional": {
     "nombre": "Stephan Barker",
-    "titulo_principal": "ASESOR DIGITAL",
-    "resumen_perfil": "Soy un desarrollador web enfocado en la rentabilidad y la funcionalidad... convertirlos en sitios que inspiren y faciliten la vida de quienes los utilizan.",
-    "descripcion_hero": "Apasionado por crear experiencias digitales impactantes. Más de 8 años de experiencia en WordPress, WooCommerce & Elementor, enfocándome en transformar ideas en proyectos exitosos.",
+    "titulo_principal": "DESARROLLADOR FULL STACK & ASESOR DIGITAL",
+    "resumen_perfil": "Desarrollador web versátil con sólida base en gestión de servidores y arquitecturas modernas. Combino la agilidad del desarrollo No-Code/WordPress con la potencia del código a medida (Next.js, TypeScript).",
+    "descripcion_hero": "Más de 8 años transformando ideas en productos digitales. Especialista en la transición de sitios web informativos a aplicaciones web escalables utilizando Next.js, Supabase y Docker, sin descuidar el ecosistema WordPress & WooCommerce.",
+    "enlaces": {
+      "github": "https://github.com/[tu-usuario]",
+      "portfolio": "https://stephanbarker.com"
+    },
     "navegacion": [
       "Inicio",
       "Sobre mí",
       "Experiencia",
+      "Stack Tecnológico",
       "Proyectos",
       "Contacto"
     ]
@@ -17,26 +22,42 @@
     "proyectos_exitosos": "+20",
     "clientes_satisfechos": "+15"
   },
-  "areas_enfoque": [
-    {
-      "categoria": "Desarrollo",
-      "habilidades": [
-        "Desarrollo Web",
-        "WordPress",
-        "WooCommerce",
-        "Elementor"
-      ]
-    },
-    {
-      "categoria": "Estrategia y Tech",
-      "habilidades": [
-        "Transformación Digital",
-        "Frontend Development",
-        "Blockchain"
-      ]
-    }
-  ],
+  "stack_tecnologico": {
+    "frontend_moderno": [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "JavaScript (ES6+)",
+      "Consumo de APIs RESTful"
+    ],
+    "backend_y_datos": [
+      "Supabase (BaaS)",
+      "Creación de APIs",
+      "Node.js (Básico/Intermedio)"
+    ],
+    "devops_e_infraestructura": [
+      "Docker",
+      "Administración de Servidores Linux",
+      "Gestión de Hosting y Dominios (DNS)",
+      "Git & GitHub (Control de versiones)"
+    ],
+    "pagos_y_comercio": [
+      "Integración Stripe API",
+      "Integración PayPal",
+      "WooCommerce Avanzado"
+    ],
+    "herramientas_y_flujo": [
+      "Cursor (AI Code Editor)",
+      "VS Code",
+      "Despliegue Continuo (CI/CD básico)"
+    ]
+  },
   "experiencia_laboral": [
+    {
+      "rol": "Desarrollador Full Stack & Freelancer",
+      "periodo": "Actualidad",
+      "descripcion": "Desarrollo de aplicaciones web modernas y APIs. Administración de infraestructura en Linux y despliegue de contenedores con Docker. Integración de pasarelas de pago (Stripe/PayPal) para productos digitales y mantenimiento de repositorios en GitHub."
+    },
     {
       "empresa": "Polygon CRM",
       "descripcion": "Trabajo enfocado en el desarrollo y la implementación de estrategias CRM, liderando equipos y optimizando procesos de ventas y marketing."
@@ -44,52 +65,40 @@
     {
       "rol": "Asesor de Transformación Digital",
       "periodo": "2018 - 2021",
-      "descripcion": "Asesoramiento en procesos de transformación digital, ayudando a implementar nuevas tecnologías y optimizar la presencia en línea para el crecimiento de la empresa."
-    },
-    {
-      "rol": "Freelancer – Desarrollo Web",
-      "descripcion": "Trabajo independiente ofreciendo servicios de desarrollo web, personalización y mantenimiento para empresas. Uso de herramientas como WordPress y WooCommerce."
+      "descripcion": "Asesoramiento en procesos de transformación digital, implementando nuevas tecnologías para optimizar la presencia online."
     },
     {
       "empresa": "White Shark Media",
       "rol": "Supervisor del departamento Creativo & Web",
-      "descripcion": "Supervisión y dirección del equipo creativo y de diseño, asegurando la calidad visual y técnica de los entregables a los clientes."
+      "descripcion": "Supervisión de equipos creativos y control de calidad visual y técnica en entregables web."
     }
   ],
   "proyectos_destacados": [
     {
+      "nombre": "Proyectos Open Source / GitHub",
+      "categoria": "Desarrollo Full Stack",
+      "tecnologias": ["Next.js", "TypeScript", "Supabase"],
+      "descripcion": "Colección de repositorios con implementaciones de autenticación, CRUDs y arquitecturas escalables."
+    },
+    {
       "nombre": "Tu Menú Digital",
-      "descripcion": "Plataforma para crear menús digitales interactivos para restaurantes, mejorando la experiencia del cliente."
+      "categoria": "Producto Digital",
+      "descripcion": "Plataforma para crear menús digitales interactivos para restaurantes."
     },
     {
       "nombre": "Polygon CRM",
-      "descripcion": "Desarrollo y diseño para la plataforma de CRM, enfocada en la gestión de clientes y automatización."
+      "categoria": "SaaS / CRM",
+      "descripcion": "Desarrollo y diseño para plataforma de gestión de clientes y automatización."
     },
     {
       "nombre": "Doctor Wise",
-      "descripcion": "Solución digital para el sector salud, facilitando la conexión entre doctores y pacientes."
-    },
-    {
-      "nombre": "Dra. Alma Sánchez",
-      "descripcion": "Sitio web de marca personal para servicios médicos profesionales."
-    },
-    {
-      "nombre": "Hurtado Arquitectos",
-      "descripcion": "Portafolio web para firma de arquitectos, destacando proyectos visuales y diseño minimalista."
-    },
-    {
-      "nombre": "Excello BPO",
-      "descripcion": "Sitio web corporativo para empresa de BPO, mostrando servicios de outsourcing y contact center."
-    },
-    {
-      "nombre": "Interface Outsourcing",
-      "descripcion": "Página web para empresa de outsourcing, enfocada en soluciones empresariales y atracción de clientes."
+      "categoria": "Salud / App",
+      "descripcion": "Solución digital facilitando la conexión y gestión de citas entre doctores y pacientes."
     }
   ],
   "contacto": {
-    "call_to_action": "TRABAJEMOS JUNTOS",
-    "subtitulo": "¿Tienes un proyecto en mente? Estoy aquí para ayudarte a darle vida a tus ideas.",
-    "texto_boton": "RESERVA UNA CITA"
+    "call_to_action": "POTENCIA TU PROYECTO",
+    "subtitulo": "¿Necesitas una integración compleja o una app moderna? Hablemos de cómo Next.js y una infraestructura sólida pueden escalar tu negocio.",
+    "texto_boton": "HABLEMOS DE CÓDIGO"
   }
 }
-

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
 import { loadProfile } from "@/lib/profile";
 
@@ -24,15 +24,18 @@ export async function POST(req: Request) {
     const profile = await loadProfile();
     const systemPrompt = buildSystemPrompt(profile);
 
+    // Create OpenAI provider with OpenRouter configuration
+    const openai = createOpenAI({
+      apiKey,
+      baseURL: "https://openrouter.ai/api/v1",
+      headers: {
+        "HTTP-Referer": process.env.OPENROUTER_SITE || "http://localhost:3000",
+        "X-Title": "Stephan Barker AI Chat",
+      },
+    });
+
     const result = await streamText({
-      model: openai(MODEL, {
-        apiKey,
-        baseURL: "https://openrouter.ai/api/v1",
-        headers: {
-          "HTTP-Referer": process.env.OPENROUTER_SITE || "http://localhost:3000",
-          "X-Title": "Stephan Barker AI Chat",
-        },
-      }),
+      model: openai(MODEL),
       system: systemPrompt,
       messages,
       temperature: 0.2,
