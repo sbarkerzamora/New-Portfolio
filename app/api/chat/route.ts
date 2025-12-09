@@ -9,19 +9,41 @@ export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const { messages } = (await req.json()) as {
+    const body = await req.json();
+    const { messages } = body as {
       messages: { role: "system" | "user" | "assistant"; content: string }[];
     };
 
+    // Validate messages
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      console.error("Invalid messages format:", messages);
+      return NextResponse.json(
+        { error: "Invalid messages format" },
+        { status: 400 },
+      );
+    }
+
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
+      console.error("OPENROUTER_API_KEY not set");
       return NextResponse.json(
         { error: "OPENROUTER_API_KEY not set" },
         { status: 500 },
       );
     }
 
-    const profile = await loadProfile();
+    // Load profile
+    let profile;
+    try {
+      profile = await loadProfile();
+    } catch (profileError) {
+      console.error("Error loading profile:", profileError);
+      return NextResponse.json(
+        { error: "Error loading profile data" },
+        { status: 500 },
+      );
+    }
+
     const systemPrompt = buildSystemPrompt(profile);
 
     // Create OpenAI provider with OpenRouter configuration
@@ -34,17 +56,45 @@ export async function POST(req: Request) {
       },
     });
 
+    // Filter out system messages from the messages array (they should only be in system prompt)
+    const conversationMessages = messages.filter(
+      (msg) => msg.role !== "system"
+    );
+
+    console.log("Sending request to OpenRouter:", {
+      model: MODEL,
+      messageCount: conversationMessages.length,
+      hasSystemPrompt: !!systemPrompt,
+    });
+
     const result = await streamText({
       model: openai(MODEL),
       system: systemPrompt,
-      messages,
-      temperature: 0.2,
+      messages: conversationMessages,
+      temperature: 0.5,
+      maxTokens: 400,
     });
 
     return result.toDataStreamResponse();
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Chat error" }, { status: 500 });
+    console.error("Chat API error:", error);
+    
+    // Provide more detailed error information
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
+    console.error("Error details:", {
+      message: errorMessage,
+      stack: errorStack,
+    });
+
+    return NextResponse.json(
+      { 
+        error: "Chat error",
+        details: process.env.NODE_ENV === "development" ? errorMessage : undefined
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -63,22 +113,72 @@ function buildSystemPrompt(profile: Awaited<ReturnType<typeof loadProfile>>) {
   ].join(" | ");
   
   const experiencia = profile.experiencia_laboral
-    .map((e) => `${e.empresa ?? e.rol ?? "Experiencia"}: ${e.descripcion}`)
+    .map((e) => {
+      const empresa = e.empresa ?? "Independiente";
+      const rol = e.rol ?? "Desarrollador";
+      const periodo = e.periodo ? ` (${e.periodo})` : "";
+      const logros = e.logros ? ` Logros: ${e.logros.join(". ")}.` : "";
+      return `${rol} en ${empresa}${periodo}: ${e.descripcion}.${logros}`;
+    })
     .join(" | ");
+  
   const proyectos = profile.proyectos_destacados
-    .map((p) => `${p.nombre}: ${p.descripcion}${p.imagen ? ` (imagen: ${p.imagen})` : ""}`)
+    .map((p) => {
+      const impacto = p.impacto ? ` Impacto: ${p.impacto}.` : "";
+      const techs = p.tecnologias ? ` Tecnologías: ${p.tecnologias.join(", ")}.` : "";
+      return `${p.nombre} (${p.categoria}): ${p.descripcion}.${techs}${impacto}${p.imagen ? ` (imagen: ${p.imagen})` : ""}`;
+    })
     .join(" | ");
 
+  const valores = hero.valores ? `Valores: ${hero.valores.join(", ")}.` : "";
+  const filosofia = hero.filosofia_trabajo ? `Filosofía: ${hero.filosofia_trabajo}.` : "";
+  const enfoque = hero.enfoque ? `Enfoque: ${hero.enfoque}.` : "";
+  const logros = hero.logros_destacados ? `Logros destacados: ${hero.logros_destacados.join(". ")}.` : "";
+
   return [
-    "Eres un asistente en tono profesional y cercano que responde sobre Stephan Barker.",
-    `Nombre: ${hero.nombre}. Título: ${hero.titulo_principal}. Resumen: ${hero.resumen_perfil}`,
-    `Experiencia: ${experiencia}`,
-    `Stack tecnológico: ${stackTech}`,
-    `Proyectos: ${proyectos}`,
-    `Estadísticas clave: experiencia ${stats.anos_experiencia}, proyectos ${stats.proyectos_exitosos}, clientes ${stats.clientes_satisfechos}`,
-    "Si el usuario pide ver proyectos/portafolio, menciona que se puede mostrar un carrusel visual y responde brevemente.",
-    "Si no encuentras la respuesta en los datos, indica que no está en el perfil.",
-    "Responde en español en formato breve y claro.",
-  ].join("\n");
+    "Eres STEPHAN BARKER hablando directamente con el usuario. No eres un asistente, ERES Stephan Barker. Habla en primera persona como si fueras él mismo.",
+    "",
+    "INFORMACIÓN PERSONAL:",
+    `Soy ${hero.nombre}, ${hero.titulo_principal}.`,
+    `Resumen: ${hero.resumen_perfil}`,
+    `Descripción: ${hero.descripcion_hero}`,
+    filosofia,
+    valores,
+    enfoque,
+    logros,
+    "",
+    "EXPERIENCIA LABORAL:",
+    experiencia,
+    "",
+    "STACK TECNOLÓGICO:",
+    stackTech,
+    "",
+    "PROYECTOS DESTACADOS:",
+    proyectos,
+    "",
+    "ESTADÍSTICAS:",
+    `Más de ${stats.anos_experiencia} años de experiencia, ${stats.proyectos_exitosos} proyectos exitosos, ${stats.clientes_satisfechos} clientes satisfechos.`,
+    "",
+    "INSTRUCCIONES DE CONVERSACIÓN:",
+    "- Habla de forma natural, conversacional y amigable, como si estuvieras hablando con un amigo o colega.",
+    "- SIEMPRE invita al usuario a conocer más sobre ti al final de cada respuesta. Usa frases como: '¿Te gustaría saber más sobre...?', '¿Hay algo más que te interese?', '¿Quieres que te cuente sobre...?'",
+    "- Sé entusiasta y apasionado cuando hablas de tus proyectos y tecnologías.",
+    "- Comparte detalles específicos y ejemplos concretos cuando sea relevante.",
+    "",
+    "REGLAS IMPORTANTES SOBRE MOSTRAR CONTENIDO VISUAL:",
+    "- Cuando el usuario pregunta por PROYECTOS o PORTAFOLIO, DEBES incluir en tu respuesta la frase exacta: 'Aquí tienes un carrusel con mis proyectos destacados' o 'Puedes ver un carrusel con mis proyectos'.",
+    "- Cuando el usuario pregunta por TECNOLOGÍAS, STACK TECNOLÓGICO o HERRAMIENTAS, DEBES incluir en tu respuesta la frase exacta: 'Aquí tienes un marquee con las tecnologías que uso' o 'Puedes ver un marquee con mi stack tecnológico'.",
+    "- Cuando el usuario pregunta por CONTACTO, CITA o RESERVAR, menciona que puedes abrir el calendario de reservas. El sistema abrirá automáticamente el modal de Cal.com cuando detecte estas palabras.",
+    "- NUNCA menciones proyectos cuando te pregunten por tecnologías, y viceversa.",
+    "- Si el usuario pregunta por tecnologías, habla SOLO de tecnologías, herramientas y stack. NO menciones proyectos a menos que el usuario pregunte específicamente por ellos.",
+    "- Si el usuario pregunta por proyectos, habla SOLO de proyectos y portafolio. NO menciones tecnologías a menos que el usuario pregunte específicamente por ellas.",
+    "",
+    "- Si no encuentras información específica, sé honesto y ofrece hablar de algo relacionado que sí conozcas.",
+    "- Mantén las respuestas concisas pero informativas (2-4 oraciones normalmente, más si el usuario pide detalles).",
+    "- Usa emojis ocasionalmente para hacer la conversación más amigable (👋 😊 🚀 💻 ⚡).",
+    "- Responde SIEMPRE en español.",
+    "",
+    "RECUERDA: El objetivo es que el usuario se sienta como si estuviera hablando directamente contigo, Stephan Barker, y que siempre quiera conocer más sobre tu trabajo y experiencia."
+  ].filter(Boolean).join("\n");
 }
 

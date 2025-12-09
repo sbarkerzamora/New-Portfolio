@@ -9,21 +9,25 @@
  * Features:
  * - Animated header with fade-in effect
  * - Minimalistic chat component (no card borders)
- * - Compact footer
+ * - Compact footer with Cal.com booking button
  * - Same background gradient as before
  * 
  * @module app/page
  */
 
 import React from "react";
-import { Menu, Info, Link2 } from "lucide-react";
+import { Menu, Info, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import MinimalChat from "@/components/MinimalChat";
 import DecryptedText from "@/components/DecryptedText";
+import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
 import styles from "./page.module.css";
 
-export default function Home() {
+function HomeContent() {
+  const { openCalendar } = useCalModal();
+  const chatRef = React.useRef<{ triggerContact: () => void } | null>(null);
+
   return (
     <div className={styles.pageContainer}>
       {/* Background gradient - same as before */}
@@ -57,23 +61,43 @@ export default function Home() {
 
       {/* Main content - centered chat */}
       <main className={styles.mainContent}>
-        <MinimalChat />
+        <MinimalChat onContactRequest={() => openCalendar()} />
       </main>
 
       {/* Compact footer */}
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <span className={styles.footerName}>© {new Date().getFullYear()} Stephan Barker</span>
-          <a
-            href="mailto:contacto@stephanbarker.com"
-            className={styles.footerLink}
-            aria-label="Contacto por email"
-          >
-            <Link2 className="h-4 w-4" />
-            contacto@stephanbarker.com
-          </a>
+          <div className={styles.footerActions}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={openCalendar}
+              className={styles.bookingButton}
+              aria-label="Reservar una cita"
+            >
+              <Calendar className="h-4 w-4" />
+              Reservar una cita
+            </Button>
+            <a
+              href="mailto:hi@stephanbarker.com"
+              className={styles.footerLink}
+              aria-label="Contacto por email"
+            >
+              hi@stephanbarker.com
+            </a>
+          </div>
         </div>
       </footer>
+
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <CalModalProvider>
+      <HomeContent />
+    </CalModalProvider>
   );
 }

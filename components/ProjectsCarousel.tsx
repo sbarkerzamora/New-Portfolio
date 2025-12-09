@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 /* eslint-disable @next/next/no-img-element */
 
 import { useMemo, useState } from "react";
@@ -58,10 +56,9 @@ export default function ProjectsCarousel({ projects, ctaLabel = "Explorar más" 
         </Button>
       </div>
 
-      <Card className="w-full max-w-full py-0 sm:flex-row sm:gap-0 overflow-hidden bg-card/70 border-border/60 shadow-2xl">
-        <CardContent className={`${styles.imageContainer} sm:min-w-[14rem]`}>
+      <Card className={styles.projectCard}>
+        <CardContent className={styles.imageContainer}>
           {current.imagen ? (
-            // Se usa <img> para soportar rutas dinámicas desde profile.json
             <img src={current.imagen} alt={current.nombre} className={styles.image} loading="lazy" />
           ) : (
             <div className={styles.imagePlaceholder}>Sin imagen</div>
@@ -69,15 +66,15 @@ export default function ProjectsCarousel({ projects, ctaLabel = "Explorar más" 
         </CardContent>
 
         <div className={styles.textColumn}>
-          <CardHeader className="pt-6">
+          <CardHeader className={styles.cardHeader}>
             <CardTitle className={styles.title}>{current.nombre}</CardTitle>
             <CardDescription className={styles.description}>{current.descripcion}</CardDescription>
             {current.categoria && <p className={styles.category}>{current.categoria}</p>}
           </CardHeader>
-          <CardFooter className="gap-3 py-6">
+          <CardFooter className={styles.cardFooter}>
             <Button
               variant="ghost"
-              className="bg-transparent bg-gradient-to-br from-purple-500 to-pink-500 text-white hover:from-purple-400 hover:to-pink-400 focus-visible:ring-pink-600/20"
+              className={styles.exploreButton}
               type="button"
               onClick={() => {
                 if (current.enlace) {
@@ -86,8 +83,8 @@ export default function ProjectsCarousel({ projects, ctaLabel = "Explorar más" 
               }}
               disabled={!current.enlace}
             >
-              <ExternalLink className="mr-2 h-4 w-4" />
               {ctaLabel}
+              <ExternalLink className={styles.externalIcon} />
             </Button>
           </CardFooter>
         </div>

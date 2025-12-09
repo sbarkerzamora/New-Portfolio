@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.0.22",
+    "@calcom/embed-react": "^1.5.3",
     "ai": "^4.1.45",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -19,6 +20,7 @@
     "lucide-react": "^0.556.0",
     "motion": "^12.23.25",
     "next": "16.0.8",
+    "phosphor-react": "^1.4.1",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "tailwind-merge": "^3.4.0",

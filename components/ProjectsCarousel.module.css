@@ -1,26 +1,58 @@
+/* Carousel container */
 .carousel {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   align-items: center;
   width: 100%;
   max-width: 100%;
+  padding: 0.5rem;
 }
 
+/* Navigation controls */
 .controls {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+  padding: 0.5rem 0;
 }
 
 .counter {
   font-size: 0.875rem;
   color: hsl(var(--muted-foreground));
+  min-width: 3rem;
+  text-align: center;
+  font-weight: 500;
 }
 
-.imageContainer {
-  padding: 0;
+/* Project card - matches card-06 design */
+.projectCard {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.projectCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Image container - left side on desktop, top on mobile */
+.imageContainer {
+  position: relative;
+  width: 100%;
+  padding: 0 !important;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .image {
@@ -28,51 +60,231 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: 1rem 1rem 0 0;
+  transition: transform 0.3s ease;
+}
+
+.projectCard:hover .image {
+  transform: scale(1.02);
 }
 
 .imagePlaceholder {
   width: 100%;
   height: 100%;
-  min-height: 220px;
+  min-height: 200px;
   display: grid;
   place-items: center;
   color: hsl(var(--muted-foreground));
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 1rem 1rem 0 0;
+  background: linear-gradient(135deg, rgba(109, 93, 252, 0.1), rgba(255, 159, 252, 0.1));
+  font-size: 0.875rem;
 }
 
+/* Text column - right side on desktop, bottom on mobile */
 .textColumn {
-  min-width: 14rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  flex: 1;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1.5rem;
+  gap: 1rem;
+}
+
+.cardHeader {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .title {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  line-height: 1.3;
+  margin: 0;
 }
 
 .description {
-  margin-top: 0.35rem;
+  font-size: 0.9rem;
   color: hsl(var(--muted-foreground));
+  line-height: 1.5;
+  margin: 0;
 }
 
 .category {
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: hsl(var(--primary));
+  font-weight: 500;
+  margin-top: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-@media (min-width: 640px) {
+.cardFooter {
+  padding: 0 !important;
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Explore button with gradient - matches card-06 design */
+.exploreButton {
+  background: linear-gradient(to right, #9333ea, #ec4899);
+  background-size: 200% 100%;
+  color: white;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.exploreButton:hover:not(:disabled) {
+  background-position: right center;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+}
+
+.exploreButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.exploreButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.externalIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 639px) {
+  .carousel {
+    gap: 0.75rem;
+    padding: 0.25rem;
+  }
+
+  .controls {
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+  }
+
+  .counter {
+    font-size: 0.75rem;
+    min-width: 2.5rem;
+  }
+
+  .projectCard {
+    max-width: 100%;
+    border-radius: 0.875rem;
+  }
+
+  .imageContainer {
+    height: 200px;
+  }
+
   .image {
-    height: 100%;
-    max-height: 320px;
+    border-radius: 0.875rem 0.875rem 0 0;
+  }
+
+  .imagePlaceholder {
+    min-height: 200px;
+    border-radius: 0.875rem 0.875rem 0 0;
+  }
+
+  .textColumn {
+    padding: 1.25rem;
+    gap: 0.875rem;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .description {
+    font-size: 0.85rem;
+  }
+
+  .category {
+    font-size: 0.75rem;
+  }
+
+  .exploreButton {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .cardFooter {
+    justify-content: stretch;
+  }
+}
+
+/* Desktop layout - horizontal card */
+@media (min-width: 640px) {
+  .projectCard {
+    flex-direction: row;
+    max-width: 700px;
+  }
+
+  .imageContainer {
+    width: 250px;
+    min-width: 250px;
+    height: auto;
+    min-height: 250px;
+  }
+
+  .image {
     border-radius: 1rem 0 0 1rem;
+    height: 100%;
+    min-height: 250px;
   }
 
   .imagePlaceholder {
     border-radius: 1rem 0 0 1rem;
+    min-height: 250px;
+  }
+
+  .textColumn {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .description {
+    font-size: 0.9rem;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1024px) {
+  .projectCard {
+    max-width: 800px;
+  }
+
+  .imageContainer {
+    width: 300px;
+    min-width: 300px;
+  }
+
+  .image {
+    min-height: 300px;
+  }
+
+  .imagePlaceholder {
+    min-height: 300px;
   }
 }
 

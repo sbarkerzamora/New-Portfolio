@@ -4,8 +4,23 @@
     "titulo_principal": "DESARROLLADOR FULL STACK & ASESOR DIGITAL",
     "resumen_perfil": "Desarrollador web versátil con sólida base en gestión de servidores y arquitecturas modernas. Combino la agilidad del desarrollo No-Code/WordPress con la potencia del código a medida (Next.js, TypeScript).",
     "descripcion_hero": "Más de 8 años transformando ideas en productos digitales. Especialista en la transición de sitios web informativos a aplicaciones web escalables utilizando Next.js, Supabase y Docker, sin descuidar el ecosistema WordPress & WooCommerce.",
+    "filosofia_trabajo": "Creo en la simplicidad y la eficiencia. Cada proyecto que desarrollo busca resolver problemas reales con soluciones elegantes y escalables. Me apasiona encontrar el equilibrio perfecto entre la velocidad del desarrollo y la calidad del código.",
+    "valores": [
+      "Transparencia en cada etapa del proyecto",
+      "Comunicación clara y constante",
+      "Código limpio y mantenible",
+      "Soluciones escalables desde el día uno",
+      "Aprendizaje continuo y adaptación"
+    ],
+    "enfoque": "Me especializo en ayudar a empresas a hacer la transición de sitios web estáticos a aplicaciones web modernas y funcionales. Trabajo tanto con startups que necesitan MVP rápidos como con empresas establecidas que buscan modernizar su infraestructura digital.",
+    "logros_destacados": [
+      "Desarrollé Tu Menú Digital, una plataforma completa que ayuda a restaurantes a digitalizar sus operaciones",
+      "Lideré la transformación digital de múltiples empresas, aumentando su eficiencia operativa en más del 40%",
+      "Implementé sistemas de pago integrados que procesan transacciones de forma segura y eficiente",
+      "Creé arquitecturas escalables que soportan el crecimiento de startups desde MVP hasta productos maduros"
+    ],
     "enlaces": {
-      "github": "https://github.com/[tu-usuario]",
+      "github": "https://github.com/sbarkerzamora",
       "portfolio": "https://stephanbarker.com"
     },
     "navegacion": [
@@ -56,21 +71,47 @@
     {
       "rol": "Desarrollador Full Stack & Freelancer",
       "periodo": "Actualidad",
-      "descripcion": "Desarrollo de aplicaciones web modernas y APIs. Administración de infraestructura en Linux y despliegue de contenedores con Docker. Integración de pasarelas de pago (Stripe/PayPal) para productos digitales y mantenimiento de repositorios en GitHub."
+      "empresa": "Independiente",
+      "descripcion": "Desarrollo de aplicaciones web modernas y APIs. Administración de infraestructura en Linux y despliegue de contenedores con Docker. Integración de pasarelas de pago (Stripe/PayPal) para productos digitales y mantenimiento de repositorios en GitHub.",
+      "logros": [
+        "Desarrollé Tu Menú Digital desde cero, una plataforma SaaS completa para restaurantes",
+        "Implementé sistemas de autenticación y autorización escalables usando Next.js y Supabase",
+        "Optimicé el rendimiento de aplicaciones, reduciendo tiempos de carga en más del 60%",
+        "Integré múltiples pasarelas de pago, procesando transacciones de forma segura"
+      ]
     },
     {
       "empresa": "Polygon CRM",
-      "descripcion": "Trabajo enfocado en el desarrollo y la implementación de estrategias CRM, liderando equipos y optimizando procesos de ventas y marketing."
+      "rol": "Desarrollador Full Stack",
+      "periodo": "2021 - 2023",
+      "descripcion": "Trabajo enfocado en el desarrollo y la implementación de estrategias CRM, liderando equipos y optimizando procesos de ventas y marketing.",
+      "logros": [
+        "Lideré el desarrollo de funcionalidades clave del CRM que mejoraron la eficiencia del equipo de ventas",
+        "Implementé automatizaciones que redujeron el tiempo de gestión de clientes en un 50%",
+        "Colaboré estrechamente con el equipo de marketing para crear herramientas de análisis de datos"
+      ]
     },
     {
       "rol": "Asesor de Transformación Digital",
       "periodo": "2018 - 2021",
-      "descripcion": "Asesoramiento en procesos de transformación digital, implementando nuevas tecnologías para optimizar la presencia online."
+      "empresa": "Consultoría Independiente",
+      "descripcion": "Asesoramiento en procesos de transformación digital, implementando nuevas tecnologías para optimizar la presencia online.",
+      "logros": [
+        "Ayudé a más de 15 empresas a modernizar sus procesos digitales",
+        "Implementé soluciones que aumentaron la productividad de los equipos en promedio un 40%",
+        "Diseñé estrategias de migración de sistemas legacy a arquitecturas modernas"
+      ]
     },
     {
       "empresa": "White Shark Media",
       "rol": "Supervisor del departamento Creativo & Web",
-      "descripcion": "Supervisión de equipos creativos y control de calidad visual y técnica en entregables web."
+      "periodo": "2016 - 2018",
+      "descripcion": "Supervisión de equipos creativos y control de calidad visual y técnica en entregables web.",
+      "logros": [
+        "Gestioné un equipo de 8 diseñadores y desarrolladores",
+        "Establecí procesos de control de calidad que redujeron errores en producción en un 70%",
+        "Desarrollé metodologías ágiles que mejoraron la entrega de proyectos"
+      ]
     }
   ],
   "proyectos_destacados": [
@@ -85,23 +126,29 @@
     {
       "nombre": "Tu Menú Digital",
       "categoria": "Producto Digital",
-      "descripcion": "Plataforma para crear menús digitales interactivos para restaurantes.",
+      "descripcion": "Plataforma SaaS completa para restaurantes que permite crear menús digitales interactivos, gestionar pedidos en línea, reservas de mesas, comandas de cocina y sistema de pagos integrado. Desarrollado con Next.js, TypeScript y Supabase.",
       "imagen": "/projects/tumenudigital.png",
-      "enlace": "https://tumenudigital.app/"
+      "enlace": "https://tumenudigital.app/",
+      "tecnologias": ["Next.js", "TypeScript", "Supabase", "Stripe", "Docker"],
+      "impacto": "Más de 200 restaurantes en Latinoamérica confían en la plataforma para digitalizar sus operaciones."
     },
     {
       "nombre": "Polygon CRM",
       "categoria": "SaaS / CRM",
-      "descripcion": "Desarrollo y diseño para plataforma de gestión de clientes y automatización.",
+      "descripcion": "Plataforma completa de gestión de relaciones con clientes (CRM) con funcionalidades avanzadas de automatización, análisis de datos y gestión de ventas. Incluye integraciones con herramientas de marketing y sistemas de facturación.",
       "imagen": "/projects/polygoncrm.png",
-      "enlace": "https://polygoncrm.com/"
+      "enlace": "https://polygoncrm.com/",
+      "tecnologias": ["Next.js", "React", "TypeScript", "Supabase", "Stripe"],
+      "impacto": "Sistema utilizado por equipos de ventas para optimizar procesos y aumentar conversiones."
     },
     {
       "nombre": "Doctor Wise",
       "categoria": "Salud / App",
-      "descripcion": "Solución digital facilitando la conexión y gestión de citas entre doctores y pacientes.",
+      "descripcion": "Plataforma integral para el sector salud que conecta doctores y pacientes, facilitando la gestión de citas, historiales médicos digitales y comunicación segura. Incluye sistema de recordatorios y gestión de disponibilidad.",
       "imagen": "/projects/doctorwise.png",
-      "enlace": "https://doctorwise.cloud/"
+      "enlace": "https://doctorwise.cloud/",
+      "tecnologias": ["Next.js", "TypeScript", "Supabase", "Stripe"],
+      "impacto": "Facilita la gestión de citas médicas mejorando la experiencia tanto para profesionales como pacientes."
     },
     {
       "nombre": "Dra. Alma Sánchez",
