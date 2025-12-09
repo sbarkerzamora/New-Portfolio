@@ -13,6 +13,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^1.0.22",
     "@calcom/embed-react": "^1.5.3",
+    "@react-pdf/renderer": "^4.3.1",
     "ai": "^4.1.45",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

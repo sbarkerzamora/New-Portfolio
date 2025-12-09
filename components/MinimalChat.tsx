@@ -48,6 +48,7 @@ const QUICK_ACTIONS = [
   { label: "Experiencia", prompt: "Cuéntame sobre tu experiencia" },
   { label: "Proyectos", prompt: "¿Qué proyectos has realizado?" },
   { label: "Contacto", prompt: "¿Cómo puedo contactarte?" },
+  { label: "Descargar CV", prompt: "¿Puedo descargar tu CV?", action: "download-cv" },
 ];
 
 /**
@@ -254,10 +255,43 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
   };
 
   /**
+   * Handles CV download
+   * Downloads the dynamically generated PDF from the API
+   */
+  const handleDownloadCV = async () => {
+    try {
+      const response = await fetch("/api/cv");
+      if (!response.ok) {
+        throw new Error("Error generating CV");
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "Stephan-Barker-CV.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading CV:", error);
+      setError("Error al descargar el CV. Por favor, intenta de nuevo.");
+    }
+  };
+
+  /**
    * Handles quick action button clicks
    * Automatically submits the prompt as a message using AI SDK
+   * Or handles special actions like CV download
    */
-  const handleQuickAction = (prompt: string) => {
+  const handleQuickAction = (prompt: string, action?: string) => {
+    // Handle special actions
+    if (action === "download-cv") {
+      handleDownloadCV();
+      return;
+    }
+
     const trimmedPrompt = prompt.trim();
     if (!trimmedPrompt) return;
 
@@ -447,7 +481,7 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
                 <button
                   key={action.label}
                   type="button"
-                  onClick={() => handleQuickAction(action.prompt)}
+                  onClick={() => handleQuickAction(action.prompt, (action as any).action)}
                   className={styles.quickActionButton}
                   aria-label={`Acción rápida: ${action.label}`}
                 >

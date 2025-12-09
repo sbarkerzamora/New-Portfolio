@@ -16,7 +16,7 @@
  */
 
 import React from "react";
-import { Menu, Info, Calendar } from "lucide-react";
+import { Menu, Info, Calendar, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import MinimalChat from "@/components/MinimalChat";
@@ -27,6 +27,32 @@ import styles from "./page.module.css";
 function HomeContent() {
   const { openCalendar } = useCalModal();
   const chatRef = React.useRef<{ triggerContact: () => void } | null>(null);
+
+  /**
+   * Handles CV download
+   * Downloads the dynamically generated PDF from the API
+   */
+  const handleDownloadCV = async () => {
+    try {
+      const response = await fetch("/api/cv");
+      if (!response.ok) {
+        throw new Error("Error generating CV");
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "Stephan-Barker-CV.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error downloading CV:", error);
+      // Could show a toast notification here
+    }
+  };
 
   return (
     <div className={styles.pageContainer}>
@@ -69,6 +95,16 @@ function HomeContent() {
         <div className={styles.footerContent}>
           <span className={styles.footerName}>© {new Date().getFullYear()} Stephan Barker</span>
           <div className={styles.footerActions}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDownloadCV}
+              className={styles.bookingButton}
+              aria-label="Descargar CV"
+            >
+              <Download className="h-4 w-4" />
+              Descargar CV
+            </Button>
             <Button
               variant="ghost"
               size="sm"

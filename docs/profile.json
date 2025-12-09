@@ -21,7 +21,8 @@
     ],
     "enlaces": {
       "github": "https://github.com/sbarkerzamora",
-      "portfolio": "https://stephanbarker.com"
+      "portfolio": "https://stephanbarker.com",
+      "cv": "/api/cv"
     },
     "navegacion": [
       "Inicio",
