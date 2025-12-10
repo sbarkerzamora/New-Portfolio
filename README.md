@@ -1,10 +1,10 @@
 # Stephan Barker — AI Chat Portfolio
 
-A modern, interactive portfolio website featuring an AI-powered chat interface. Built with Next.js, TypeScript, Tailwind CSS, and integrated with OpenRouter for AI chat functionality.
+A modern, interactive portfolio website featuring an AI-powered chat interface. Built with Next.js, TypeScript, Tailwind CSS, and integrated with Cloudflare Workers AI for AI chat functionality.
 
 ## ✨ Features
 
-- 🤖 **AI Chat Interface**: Interactive chat powered by OpenRouter AI (GPT-OSS-20b) that answers questions about professional experience, projects, and skills
+- 🤖 **AI Chat Interface**: Interactive chat powered by Cloudflare Workers AI (@cf/openai/gpt-oss-20b) that answers questions about professional experience, projects, and skills
 - 📄 **Dynamic CV Generation**: Automatically generates a professional PDF CV from `profile.json` data
 - 📅 **Cal.com Integration**: Embedded calendar for booking meetings directly in the chat
 - 🎨 **Modern UI**: Dark mode-only design with smooth animations and minimalist aesthetics
@@ -17,8 +17,8 @@ A modern, interactive portfolio website featuring an AI-powered chat interface. 
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **UI Components**: shadcn/ui
-- **AI SDK**: Vercel AI SDK
-- **AI Provider**: OpenRouter
+- **AI SDK**: Vercel AI SDK v5
+- **AI Provider**: Cloudflare Workers AI
 - **PDF Generation**: @react-pdf/renderer
 - **Calendar**: Cal.com Embed
 - **Icons**: Lucide React, Phosphor Icons
@@ -28,7 +28,7 @@ A modern, interactive portfolio website featuring an AI-powered chat interface. 
 
 - Node.js 20 or higher
 - npm, yarn, or pnpm
-- OpenRouter API key (get one at [openrouter.ai](https://openrouter.ai))
+- Cloudflare Account ID and API Token (get them from [Cloudflare Dashboard](https://dash.cloudflare.com))
 
 ## 🚀 Getting Started
 
@@ -54,8 +54,8 @@ pnpm install
 Create a `.env.local` file in the root directory:
 
 ```env
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-OPENROUTER_SITE=https://yourdomain.com  # Optional, for production
+CLOUDFLARE_ACCOUNT_ID=cedc63f32b25456ed269f0a10437d19e
+CLOUDFLARE_API_TOKEN=your_cloudflare_api_token_here
 ```
 
 ### 4. Customize your profile
@@ -101,7 +101,8 @@ docker build -t portfolio-app .
 
 ```bash
 docker run -p 3000:3000 \
-  -e OPENROUTER_API_KEY=your_key_here \
+  -e CLOUDFLARE_ACCOUNT_ID=cedc63f32b25456ed269f0a10437d19e \
+  -e CLOUDFLARE_API_TOKEN=your_cloudflare_api_token_here \
   portfolio-app
 ```
 

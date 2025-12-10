@@ -338,15 +338,53 @@ export default function MinimalChat({ className, onContactRequest }: MinimalChat
         };
       },
       fetch: async (url, options) => {
-        const response = await fetch(url, options);
-        
-        // Extract model from headers for connection indicator
-        const modelHeader = response.headers.get("x-model-used");
-        if (modelHeader) {
-          setCurrentModel(modelHeader);
+        try {
+          const response = await fetch(url, options);
+          
+          // Extract model from headers for connection indicator
+          const modelHeader = response.headers.get("x-model-used");
+          if (modelHeader) {
+            setCurrentModel(modelHeader);
+          }
+          
+          // Check if response is ok, if not, throw an error with more details
+          if (!response.ok) {
+            // Try to get error details from response
+            let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            try {
+              const errorData = await response.json();
+              if (errorData.error || errorData.message) {
+                errorMessage = errorData.error || errorData.message;
+              }
+            } catch {
+              // If we can't parse JSON, use the status text
+            }
+            
+            const error = new Error(errorMessage);
+            (error as any).status = response.status;
+            (error as any).statusText = response.statusText;
+            throw error;
+          }
+          
+          return response;
+        } catch (fetchError) {
+          // Handle network errors and other fetch errors
+          console.error("Fetch error in transport:", fetchError);
+          
+          // If it's already an Error, re-throw it
+          if (fetchError instanceof Error) {
+            // Enhance error message for network errors
+            if (fetchError.message === "Failed to fetch" || fetchError.message === "network error" || fetchError.name === "TypeError") {
+              const networkError = new Error("Error de conexión. Por favor, verifica tu conexión a internet e intenta de nuevo.");
+              (networkError as any).cause = fetchError;
+              throw networkError;
+            }
+            throw fetchError;
+          }
+          
+          // If it's not an Error, wrap it
+          throw new Error(String(fetchError));
         }
-        
-        return response;
       },
     });
   }, []);
@@ -368,6 +406,25 @@ He trabajado en proyectos como Tu Menú Digital (una plataforma completa para re
 Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría saber? Puedes preguntarme sobre mis proyectos, tecnologías que uso, mi experiencia, o cualquier cosa que te interese. ¡Estoy aquí para conversar! 😊`,
       }],
     }],
+    onResponse: (response) => {
+      console.log("useChat onResponse:", {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        ok: response.ok,
+      });
+    },
+    onFinish: (message) => {
+      console.log("useChat onFinish:", {
+        id: message.id,
+        role: message.role,
+        contentLength: getMessageText(message).length,
+        contentPreview: getMessageText(message).substring(0, 100),
+      });
+    },
+    onError: (error) => {
+      console.error("useChat onError:", error);
+    },
   });
 
   // Update connection status based on chat status
@@ -601,14 +658,25 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       
       if (aiError.message) {
         const errorMsgLower = aiError.message.toLowerCase();
-        if (errorMsgLower.includes("api key") || errorMsgLower.includes("unauthorized")) {
+        if (errorMsgLower.includes("api key") || errorMsgLower.includes("unauthorized") || errorMsgLower.includes("401")) {
           errorMessage = "Error de configuración: La clave de API no está configurada correctamente.";
-        } else if (errorMsgLower.includes("network") || errorMsgLower.includes("fetch") || errorMsgLower.includes("failed to fetch")) {
+        } else if (
+          errorMsgLower.includes("network") || 
+          errorMsgLower.includes("fetch") || 
+          errorMsgLower.includes("failed to fetch") ||
+          errorMsgLower.includes("error de conexión") ||
+          errorMsgLower.includes("network error") ||
+          errorMsgLower.includes("typeerror")
+        ) {
           errorMessage = "Error de conexión. Por favor, verifica tu conexión a internet e intenta de nuevo.";
-        } else if (errorMsgLower.includes("rate limit") || errorMsgLower.includes("too many")) {
+        } else if (errorMsgLower.includes("rate limit") || errorMsgLower.includes("too many") || errorMsgLower.includes("429")) {
           errorMessage = "Demasiadas solicitudes. Por favor, espera un momento e intenta de nuevo.";
-        } else if (errorMsgLower.includes("timeout")) {
+        } else if (errorMsgLower.includes("timeout") || errorMsgLower.includes("timed out")) {
           errorMessage = "La solicitud tardó demasiado. Por favor, intenta de nuevo.";
+        } else if (errorMsgLower.includes("insufficient credits") || errorMsgLower.includes("402")) {
+          errorMessage = "Error: El modelo requiere créditos. Por favor, verifica la configuración de OpenRouter.";
+        } else if (errorMsgLower.includes("no valid messages") || errorMsgLower.includes("400")) {
+          errorMessage = "Error al procesar el mensaje. Por favor, intenta de nuevo.";
         } else {
           // In development, show more details
           if (process.env.NODE_ENV === "development") {

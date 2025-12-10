@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { streamText } from "ai";
 import { loadProfile } from "@/lib/profile";
+import { streamText } from "ai";
 
-const MODELS = [
-  "openai/gpt-oss-20b:free@npm",
-  "openai/gpt-oss-120b:free",
-  "z-ai/glm-4.5-air:free",
-  "moonshotai/kimi-k2:free",
-  "google/gemma-3n-e2b-it:free",
-];
+// Modelo a usar en Cloudflare Workers AI
+const MODEL = "@cf/openai/gpt-oss-20b";
 
 export const runtime = "nodejs";
 
@@ -62,11 +56,12 @@ export async function POST(req: Request) {
       })),
     });
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-      console.error("OPENROUTER_API_KEY not set");
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiKey = process.env.CLOUDFLARE_API_TOKEN;
+    if (!accountId || !apiKey) {
+      console.error("Cloudflare credentials not set (CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN)");
       return NextResponse.json(
-        { error: "OPENROUTER_API_KEY not set" },
+        { error: "Cloudflare credentials not set" },
         { status: 500 },
       );
     }
@@ -85,16 +80,11 @@ export async function POST(req: Request) {
 
     const systemPrompt = buildSystemPrompt(profile);
 
-    // Create OpenRouter provider
-    const openrouter = createOpenRouter({
-      apiKey,
-    });
-
     // Log API key status (without exposing the key)
-    console.log("OpenRouter configuration:", {
+    console.log("Cloudflare AI configuration:", {
       hasApiKey: !!apiKey,
-      apiKeyLength: apiKey?.length || 0,
-      models: MODELS,
+      hasAccountId: !!accountId,
+      model: MODEL,
     });
 
     // Filter out system messages from the messages array (they should only be in system prompt)
@@ -142,148 +132,194 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("Sending request to OpenRouter:", {
-      models: MODELS,
-      messageCount: cleanedMessages.length,
-      hasSystemPrompt: !!systemPrompt,
-      lastMessage: cleanedMessages[cleanedMessages.length - 1]?.content?.substring(0, 50),
-      messages: cleanedMessages.map(m => ({ role: m.role, contentLength: m.content.length })),
-    });
+    // Prepare messages for Cloudflare AI
+    // The @cf/openai/gpt-oss-20b model expects OpenAI-compatible "messages" format
+    const cfMessages = [
+      { role: "system", content: systemPrompt },
+      ...cleanedMessages
+    ];
 
-    // Try models in order until one succeeds
-    let lastError: unknown = null;
-    for (const modelName of MODELS) {
-      console.log("Attempting model:", modelName);
+    try {
+      // Make direct HTTP call to Cloudflare Workers AI
+      const cfUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${MODEL}`;
+      
+      // Convert messages to a single prompt string for /ai/run/ endpoint
+      const systemMessage = cfMessages.find(m => m.role === "system");
+      const conversationMessages = cfMessages.filter(m => m.role !== "system");
+      
+      let fullPrompt = "";
+      if (systemMessage) {
+        fullPrompt += `${systemMessage.content}\n\n`;
+      }
+      
+      // Format conversation as a simple prompt
+      for (const msg of conversationMessages) {
+        const roleLabel = msg.role === "user" ? "User" : "Assistant";
+        fullPrompt += `${roleLabel}: ${msg.content}\n\n`;
+      }
+      fullPrompt += "Assistant:";
+
+      console.log("Cloudflare request body:", {
+        inputLength: fullPrompt.length,
+        inputPreview: fullPrompt.substring(0, 200),
+      });
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       try {
-        const result = await streamText({
-          model: openrouter.chat(modelName),
-          system: systemPrompt,
-          messages: cleanedMessages,
-          temperature: 0.5,
-          abortSignal: AbortSignal.timeout(30000), // 30 second timeout
-          onFinish: async ({ text, finishReason, usage, warnings }) => {
-            console.log("Stream finished successfully:", {
-              model: modelName,
-              textLength: text?.length,
-              finishReason,
-              usage,
-              warnings: warnings?.length || 0,
-            });
+        const cfResponse = await fetch(cfUrl, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
           },
-          onError: (error: unknown) => {
-            console.error("Stream error in streamText onError callback:", { model: modelName, error });
-            const errorDetails = error instanceof Error 
-              ? {
-                  message: error.message,
-                  name: error.name,
-                  stack: error.stack,
-                  cause: (error as any)?.cause,
-                }
-              : { error: String(error) };
-            console.error("Stream error details:", errorDetails);
-            
-            // Propagate the error so the request fails fast
-            throw error instanceof Error ? error : new Error(String(error));
-          },
+          body: JSON.stringify({
+            input: fullPrompt,
+            stream: false,
+          }),
+          signal: controller.signal,
         });
-
-        console.log("StreamText result created successfully", { model: modelName });
         
-        // Try to create the stream response - this will throw if there's an error
-        let response: Response;
-        try {
-          response = result.toUIMessageStreamResponse();
-        } catch (responseError) {
-          console.error("Error creating stream response:", { model: modelName, error: responseError });
-          
-          // Check if this is a retryable error
-          const errorMsg = responseError instanceof Error ? responseError.message : String(responseError);
-          const isRetryableError = errorMsg.toLowerCase().includes("rate limit") || 
-                                  errorMsg.toLowerCase().includes("429") ||
-                                  errorMsg.toLowerCase().includes("server error");
-          
-          if (isRetryableError) {
-            lastError = errorMsg;
-            continue;
-          }
-          
-          throw responseError;
+        clearTimeout(timeoutId);
+
+        if (!cfResponse.ok) {
+          const errorText = await cfResponse.text();
+          console.error("Cloudflare AI error response:", {
+            status: cfResponse.status,
+            statusText: cfResponse.statusText,
+            body: errorText.substring(0, 500),
+          });
+          return NextResponse.json(
+            {
+              error: "Cloudflare AI error",
+              message: errorText || "Unknown error from Cloudflare",
+              status: cfResponse.status,
+            },
+            { status: cfResponse.status }
+          );
         }
 
-        // Add a header to expose which model was used (for UI indicator)
-        const headers = new Headers(response.headers);
-        headers.set("x-model-used", modelName);
+        const jsonResponse = await cfResponse.json();
         
-        console.log("Response created:", {
-          model: modelName,
-          status: response.status,
-          headers: Object.fromEntries(headers.entries()),
-        });
-        
-        return new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers,
-        });
-      } catch (streamError) {
-        lastError = streamError;
-
-        // Extract error message and status
-        const errorMsg = streamError instanceof Error ? streamError.message : String(streamError);
-        const errorStatus = (streamError as any)?.statusCode ?? (streamError as any)?.status;
-        
-        // Check for rate limit or retriable error to continue with next model
-        const isRetryable = (() => {
-          const msgLower = errorMsg.toLowerCase();
-          if (msgLower.includes("rate limit") || msgLower.includes("429")) return true;
-          if (msgLower.includes("server error") || msgLower.includes("500") || msgLower.includes("502") || msgLower.includes("503")) return true;
-          const status = errorStatus;
-          return status === 429 || (status >= 500 && status < 600);
-        })();
-
-        console.error("Error in streamText for model:", { 
-          model: modelName, 
-          error: streamError,
-          errorMessage: errorMsg,
-          errorStatus,
-          isRetryable,
-        });
-
-        if (isRetryable) {
-          console.warn("Retrying with next model due to retryable error/rate limit");
-          continue;
-        }
-
-        // Non-retryable: return immediately with a user-friendly error
-        const errorDetails = streamError instanceof Error 
-          ? {
-              message: streamError.message,
-              name: streamError.name,
-              stack: process.env.NODE_ENV === "development" ? streamError.stack : undefined,
+        // Extract message from Cloudflare's response
+        let messageContent = "";
+        if (jsonResponse.result?.output && Array.isArray(jsonResponse.result.output)) {
+          const messageObj = jsonResponse.result.output.find(
+            (item: any) => item.type === "message" && item.content && Array.isArray(item.content)
+          );
+          if (messageObj) {
+            const textContent = messageObj.content.find(
+              (item: any) => item.type === "output_text" && item.text
+            );
+            if (textContent?.text) {
+              messageContent = textContent.text;
             }
-          : { error: String(streamError) };
+          }
+        }
+
+        if (!messageContent) {
+          console.error("No response text in Cloudflare JSON response. Full response:", JSON.stringify(jsonResponse, null, 2));
+          return NextResponse.json(
+            {
+              error: "No response from AI model",
+              details: jsonResponse,
+            },
+            { status: 500 }
+          );
+        }
+
+        // Format the response for AI SDK v5
+        // AI SDK v5 expects chunks in format: 0:"escaped text"\n
+        // We need to send the message in small chunks to simulate streaming
+        const encoder = new TextEncoder();
         
+        // Split message into small chunks (simulate streaming)
+        const chunkSize = 10; // Small chunks for better streaming effect
+        const chunks: string[] = [];
+        for (let i = 0; i < messageContent.length; i += chunkSize) {
+          chunks.push(messageContent.slice(i, i + chunkSize));
+        }
+        
+        console.log("Sending stream to client:", {
+          totalChunks: chunks.length,
+          messageLength: messageContent.length,
+          firstChunkPreview: chunks[0]?.substring(0, 50),
+        });
+        
+        const stream = new ReadableStream({
+          start(controller) {
+            try {
+              // Send each chunk with proper formatting
+              chunks.forEach((chunk, index) => {
+                // Escape special characters for JSON string
+                const escapedChunk = chunk
+                  .replace(/\\/g, "\\\\")  // Escape backslashes first
+                  .replace(/"/g, '\\"')    // Escape quotes
+                  .replace(/\n/g, "\\n")   // Escape newlines
+                  .replace(/\r/g, "\\r")   // Escape carriage returns
+                  .replace(/\t/g, "\\t");  // Escape tabs
+                
+                // Format: messageIndex:"content"\n
+                const formattedChunk = `0:"${escapedChunk}"\n`;
+                const encoded = encoder.encode(formattedChunk);
+                controller.enqueue(encoded);
+              });
+              
+              controller.close();
+            } catch (streamError) {
+              console.error("Error in stream start:", streamError);
+              controller.error(streamError);
+            }
+          },
+        });
+
+        return new NextResponse(stream, {
+          headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "x-vercel-ai-data-stream": "v1",
+            "x-model-used": MODEL,
+          },
+        });
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          console.error("Cloudflare AI request timeout");
+          return NextResponse.json(
+            {
+              error: "Request timeout",
+              message: "La solicitud a Cloudflare AI tardó demasiado. Por favor, intenta de nuevo.",
+            },
+            { status: 504 }
+          );
+        }
+        throw fetchError; // Re-throw to be caught by outer catch
+      }
+    } catch (error) {
+      console.error("Error calling Cloudflare AI:", error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      
+      // Check if it's a network error
+      if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ETIMEDOUT'))) {
         return NextResponse.json(
           {
-            error: "Error processing stream",
-            message: errorMsg || "Unknown error",
-            modelTried: modelName,
-            details: process.env.NODE_ENV === "development" ? errorDetails : undefined,
+            error: "Network error",
+            message: "Error de conexión con Cloudflare AI. Por favor, verifica tu conexión e intenta de nuevo.",
           },
-          { status: errorStatus && typeof errorStatus === "number" ? errorStatus : 500 }
+          { status: 503 }
         );
       }
+      
+      return NextResponse.json(
+        {
+          error: "Error calling Cloudflare AI",
+          message: errorMsg,
+        },
+        { status: 500 }
+      );
     }
-
-    // If all models failed
-    console.error("All model attempts failed", { lastError });
-    return NextResponse.json(
-      {
-        error: "All models failed or rate-limited",
-        message: lastError instanceof Error ? lastError.message : String(lastError ?? "Unknown error"),
-      },
-      { status: 500 }
-    );
   } catch (error) {
     console.error("Chat API error:", error);
     
