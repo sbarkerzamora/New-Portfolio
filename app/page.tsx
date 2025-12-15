@@ -23,6 +23,7 @@ import MinimalChat from "@/components/MinimalChat";
 import DecryptedText from "@/components/DecryptedText";
 import InfoModal from "@/components/InfoModal";
 import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
+import ColorBends from "@/components/ColorBends";
 import styles from "./page.module.css";
 import Image from "next/image";
 import gsap from "gsap";
@@ -37,19 +38,10 @@ function HomeContent() {
   const headerRef = useRef<HTMLElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
 
-  // Entrance animations for avatar and footer using GSAP
+  // Entrance animations for all content using GSAP
   useEffect(() => {
     const ctx = gsap.context(() => {
-      if (avatarRef.current) {
-        gsap.from(avatarRef.current, {
-          opacity: 0,
-          scale: 0.85,
-          y: -12,
-          duration: 0.6,
-          ease: "power2.out",
-          delay: 0.15,
-        });
-      }
+      // Header animation
       if (headerRef.current) {
         gsap.from(headerRef.current, {
           opacity: 0,
@@ -58,13 +50,62 @@ function HomeContent() {
           ease: "power1.out",
         });
       }
+      
+      // Avatar animation
+      if (avatarRef.current) {
+        gsap.from(avatarRef.current, {
+          opacity: 0,
+          scale: 0.85,
+          duration: 0.6,
+          ease: "power2.out",
+          delay: 0.15,
+        });
+      }
+      
+      // Title animation
+      const titleElement = document.querySelector(`.${styles.headerTitle}`);
+      if (titleElement) {
+        gsap.from(titleElement, {
+          opacity: 0,
+          x: -10,
+          duration: 0.5,
+          ease: "power1.out",
+          delay: 0.2,
+        });
+      }
+      
+      // Right section (status + info button) animation
+      const rightSection = document.querySelector(`.${styles.headerRightSection}`);
+      if (rightSection) {
+        gsap.from(rightSection, {
+          opacity: 0,
+          x: 10,
+          duration: 0.5,
+          ease: "power1.out",
+          delay: 0.25,
+        });
+      }
+      
+      // Footer animation
       if (footerRef.current) {
         gsap.from(footerRef.current, {
           opacity: 0,
           y: 12,
           duration: 0.6,
           ease: "power1.out",
-          delay: 0.25,
+          delay: 0.3,
+        });
+      }
+      
+      // Main content animation
+      const mainContent = document.querySelector(`.${styles.mainContent}`);
+      if (mainContent) {
+        gsap.from(mainContent, {
+          opacity: 0,
+          y: 20,
+          duration: 0.6,
+          ease: "power2.out",
+          delay: 0.1,
         });
       }
     });
@@ -100,14 +141,22 @@ function HomeContent() {
 
   return (
     <div className={styles.pageContainer}>
-      {/* Background gradient - same as before */}
-      <div
-        className={styles.background}
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(120, 180, 255, 0.25), transparent 70%), #000000",
-        }}
-      />
+      {/* ColorBends background */}
+      <div className={styles.background}>
+        <ColorBends
+          colors={["#10b981", "#34d399", "#a7f3d0"]}
+          rotation={30}
+          speed={0.45}
+          scale={1.05}
+          frequency={1.9}
+          warpStrength={1.35}
+          mouseInfluence={0.8}
+          parallax={0.6}
+          noise={0.06}
+          transparent={false}
+          style={{ width: "100%", height: "100%", opacity: 0.95 }}
+        />
+      </div>
 
       {/* Animated header */}
       <header ref={headerRef} className={cn(styles.header, "animate-in fade-in-0 duration-500")}>
@@ -123,17 +172,19 @@ function HomeContent() {
         </div>
         {/* Title for desktop */}
         <div className={styles.headerTitle}>
-          <DecryptedText
-            text="Stephan Barker"
-            animateOn="view"
-            revealDirection="center"
-            speed={80}
-            maxIterations={15}
-            className={styles.decryptedText}
-          />
+          <span className={styles.decryptedTextParent}>
+            <DecryptedText
+              text="Stephan Barker"
+              animateOn="view"
+              revealDirection="center"
+              speed={80}
+              maxIterations={15}
+              className={styles.decryptedText}
+            />
+          </span>
         </div>
-        {/* Connection status for mobile - shown in header center */}
-        <div className={styles.headerConnectionStatus}>
+        {/* Connection status and info button - positioned together */}
+        <div className={styles.headerRightSection}>
           <span
             className={cn(
               styles.headerStatusDot,
@@ -145,24 +196,19 @@ function HomeContent() {
                 ? styles.headerStatusError
                 : styles.headerStatusIdle
             )}
-            aria-label={`Estado: ${connectionStatus}`}
+            aria-label={`Estado: ${connectionStatus === "connected" ? "Conectado" : connectionStatus === "connecting" ? "Conectando" : connectionStatus === "error" ? "Error" : "En espera"}`}
+            title={connectionStatus === "connected" ? "Conectado" : connectionStatus === "connecting" ? "Conectando" : connectionStatus === "error" ? "Error" : "En espera"}
           />
-          <span className={styles.headerStatusLabel}>
-            {connectionStatus === "connected" && "Conectado"}
-            {connectionStatus === "connecting" && "Conectando"}
-            {connectionStatus === "error" && "Error"}
-            {connectionStatus === "idle" && "En espera"}
-          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Sobre"
+            onClick={() => setIsInfoOpen(true)}
+            className={styles.headerInfoButton}
+          >
+            <Info className="h-5 w-5" />
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Sobre"
-          onClick={() => setIsInfoOpen(true)}
-          className={styles.headerInfoButton}
-        >
-          <Info className="h-5 w-5" />
-        </Button>
       </header>
 
       {/* Main content - centered chat */}

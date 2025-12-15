@@ -27,6 +27,7 @@ import Cal, { getCalApi } from "@calcom/embed-react";
 import styles from "./MinimalChat.module.css";
 import ProjectsCarousel from "./ProjectsCarousel";
 import TechnologiesMarquee from "./TechnologiesMarquee";
+import GitHubContributions from "./GitHubContributions";
 import profileData from "@/docs/profile.json";
 import Image from "next/image";
 import gsap from "gsap";
@@ -239,6 +240,25 @@ function generateDynamicSuggestions(messages: Message[], maxSuggestions: number 
     topSuggestions.push(ALL_QUICK_ACTIONS.find(a => a.action === "download-cv")!);
   }
 
+  // Ensure Contact is always available
+  const hasContact = topSuggestions.some(a => a.label === "Contacto");
+  const contactMentionCount = mentionedTopics.get("Contacto") || 0;
+  if (!hasContact && contactMentionCount < 3) {
+    // Replace the lowest priority suggestion with Contact (but keep CV if it's there)
+    const contactAction = ALL_QUICK_ACTIONS.find(a => a.label === "Contacto")!;
+    if (!topSuggestions.includes(contactAction)) {
+      // Remove the last item that's not CV
+      const nonCVIndex = topSuggestions.findIndex(a => a.action !== "download-cv");
+      if (nonCVIndex !== -1) {
+        topSuggestions.splice(nonCVIndex, 1, contactAction);
+      } else {
+        // If all are CV, just add contact at the end
+        topSuggestions.pop();
+        topSuggestions.push(contactAction);
+      }
+    }
+  }
+
   return topSuggestions;
 }
 
@@ -325,6 +345,7 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
   const [showWelcome, setShowWelcome] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
+  const calendarTriggeredRef = useRef(false); // Flag to prevent loop when calendar is opened from footer
   
   // Check localStorage only on client after hydration
   useEffect(() => {
@@ -339,9 +360,33 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
         gsap.from(chatContainerRef.current, {
           opacity: 0,
           y: 18,
-          duration: 0.45,
+          duration: 0.6,
           ease: "power2.out",
+          delay: 0.15,
         });
+        
+        // Animate messages area
+        const messagesArea = chatContainerRef.current.querySelector(`.${styles.messagesArea}`);
+        if (messagesArea) {
+          gsap.from(messagesArea, {
+            opacity: 0,
+            duration: 0.5,
+            ease: "power1.out",
+            delay: 0.3,
+          });
+        }
+        
+        // Animate input form
+        const inputForm = chatContainerRef.current.querySelector(`.${styles.inputForm}`);
+        if (inputForm) {
+          gsap.from(inputForm, {
+            opacity: 0,
+            y: 10,
+            duration: 0.5,
+            ease: "power1.out",
+            delay: 0.4,
+          });
+        }
       }
     });
     return () => ctx.revert();
@@ -725,6 +770,12 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
         const userRole: string = userMessage.role;
         const userQuery = userRole === "user" ? getMessageText(userMessage).toLowerCase() : "";
         
+        // Skip if this is the auto-generated contact message from footer button
+        if (calendarTriggeredRef.current && userQuery.includes("cómo puedo contactarte")) {
+          calendarTriggeredRef.current = false;
+          return;
+        }
+        
         // Check if user asked about contact or if assistant mentioned booking/reservation
         if (
           userQuery.includes("contacto") ||
@@ -732,20 +783,25 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
           userQuery.includes("cita") ||
           userQuery.includes("reservar")
         ) {
-          // Show calendar in chat
-          setShowCalendar(true);
-          // Notify parent if callback provided
-          if (onContactRequest) {
-            onContactRequest();
+          // Only show calendar if it's not already shown (to avoid loop)
+          if (!showCalendar) {
+            setShowCalendar(true);
+            // Notify parent if callback provided
+            if (onContactRequest) {
+              onContactRequest();
+            }
           }
         }
       }
     }
-  }, [aiMessages, setShowCalendar, onContactRequest]);
+  }, [aiMessages, setShowCalendar, onContactRequest, showCalendar]);
 
   // When calendar is shown externally (e.g., from footer), send a contact message
   useEffect(() => {
-    if (showCalendar) {
+    if (showCalendar && !calendarTriggeredRef.current) {
+      // Set flag to prevent loop
+      calendarTriggeredRef.current = true;
+      
       // When calendar is shown externally (e.g., from footer), send a message
       const contactPrompt = "¿Cómo puedo contactarte?";
       const hasContactMessage = aiMessages.some(msg => {
@@ -762,32 +818,8 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
 
   return (
     <div ref={chatContainerRef} className={cn(styles.chatContainer, className)}>
-      {/* Connection indicator (fixed, compact, minimal) */}
-      <div
-        className={styles.connectionIndicator}
-        title={currentModel ? `Modelo en uso: ${currentModel}` : "Modelo no informado"}
-      >
-        <span
-          className={cn(
-            styles.statusDot,
-            connectionStatus === "connected"
-              ? styles.statusConnected
-              : connectionStatus === "connecting"
-              ? styles.statusConnecting
-              : connectionStatus === "error"
-              ? styles.statusError
-              : styles.statusIdle
-          )}
-          aria-label={`Estado: ${connectionStatus}`}
-        />
-        <span className={styles.statusLabel}>
-          {connectionStatus === "connected" && "Conectado"}
-          {connectionStatus === "connecting" && "Conectando"}
-          {connectionStatus === "error" && "Error"}
-          {connectionStatus === "idle" && "En espera"}
-        </span>
-        {currentModel && <span className={styles.modelBadge}>{currentModel}</span>}
-      </div>
+      {/* GitHub Contributions */}
+      <GitHubContributions username="sbarkerzamora" months={8} />
 
       {/* Welcome message banner */}
       {showWelcome && (
