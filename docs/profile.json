@@ -184,5 +184,30 @@
     "call_to_action": "POTENCIA TU PROYECTO",
     "subtitulo": "¿Necesitas una integración compleja o una app moderna? Hablemos de cómo Next.js y una infraestructura sólida pueden escalar tu negocio.",
     "texto_boton": "HABLEMOS DE CÓDIGO"
+  },
+  "servicios": {
+    "eyebrow": "SERVICIOS",
+    "titulo": "¿Qué hago?",
+    "descripcion": "Combino estrategia, velocidad y habilidad para entregar soluciones digitales excepcionales — siempre.",
+    "items": [
+      {
+        "titulo": "Desarrollo Full-Stack",
+        "descripcion": "Aplicaciones web modernas y escalables con Next.js, TypeScript y Supabase — desde MVP hasta producto maduro.",
+        "tags": ["NEXT.JS", "TYPESCRIPT", "SUPABASE", "REACT", "APIs RESTful", "DOCKER"],
+        "imagen": "/services/fullstack-placeholder.jpg"
+      },
+      {
+        "titulo": "WordPress & WooCommerce",
+        "descripcion": "Sitios rápidos, optimizados para SEO y fáciles de administrar. Tiendas online listas para vender.",
+        "tags": ["WORDPRESS", "WOOCOMMERCE", "SEO", "PERFORMANCE", "CMS", "E-COMMERCE"],
+        "imagen": "/services/wordpress-placeholder.jpg"
+      },
+      {
+        "titulo": "Integraciones & Pagos",
+        "descripcion": "Conecta tu negocio con Stripe, PayPal y APIs externas. Automatizaciones que ahorran tiempo y dinero.",
+        "tags": ["STRIPE API", "PAYPAL", "WEBHOOKS", "AUTOMATIZACIÓN", "APIs", "ZAPIER"],
+        "imagen": "/services/integrations-placeholder.jpg"
+      }
+    ]
   }
 }

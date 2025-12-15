@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import MinimalChat from "@/components/MinimalChat";
 import DecryptedText from "@/components/DecryptedText";
 import InfoModal from "@/components/InfoModal";
+import ServicesSection from "@/components/ServicesSection";
 import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
@@ -124,80 +125,74 @@ function HomeContent() {
         />
       </div>
 
-      {/* Animated header */}
-      <header ref={headerRef} className={cn(styles.header, "animate-in fade-in-0 duration-500")}>
-        {/* Left section - Avatar */}
-        <div className={styles.headerLeft}>
-          <div ref={avatarRef} className={styles.headerAvatarWrap} aria-label="Avatar">
-            <Image
-              src="/assets/images/avatar.png"
-              alt="Stephan Barker"
-              width={36}
-              height={36}
-              className={styles.headerAvatar}
-              priority
-            />
+      {/* Hero Section - First viewport with chat */}
+      <div className={styles.heroSection}>
+        {/* Animated header */}
+        <header ref={headerRef} className={cn(styles.header, "animate-in fade-in-0 duration-500")}>
+          {/* Left section - Avatar */}
+          <div className={styles.headerLeft}>
+            <div ref={avatarRef} className={styles.headerAvatarWrap} aria-label="Avatar">
+              <Image
+                src="/assets/images/avatar.png"
+                alt="Stephan Barker"
+                width={36}
+                height={36}
+                className={styles.headerAvatar}
+                priority
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Center section - Title */}
-        <div className={styles.headerCenter}>
-          <span className={styles.headerTitle}>Stephan Barker</span>
-        </div>
+          {/* Center section - Title */}
+          <div className={styles.headerCenter}>
+            <span className={styles.headerTitle}>Stephan Barker</span>
+          </div>
 
-        {/* Right section - Connection status + Info button */}
-        <div className={styles.headerRight}>
-          <span
-            className={cn(
-              styles.headerStatusDot,
-              connectionStatus === "connected"
-                ? styles.headerStatusConnected
-                : connectionStatus === "connecting"
-                ? styles.headerStatusConnecting
-                : connectionStatus === "error"
-                ? styles.headerStatusError
-                : styles.headerStatusIdle
-            )}
-            title={connectionStatus === "connected" ? "Conectado" : connectionStatus === "connecting" ? "Conectando" : connectionStatus === "error" ? "Error" : "En espera"}
-            aria-label={`Estado: ${connectionStatus}`}
+          {/* Right section - Connection status + Info button */}
+          <div className={styles.headerRight}>
+            <span
+              className={cn(
+                styles.headerStatusDot,
+                connectionStatus === "connected"
+                  ? styles.headerStatusConnected
+                  : connectionStatus === "connecting"
+                  ? styles.headerStatusConnecting
+                  : connectionStatus === "error"
+                  ? styles.headerStatusError
+                  : styles.headerStatusIdle
+              )}
+              title={connectionStatus === "connected" ? "Conectado" : connectionStatus === "connecting" ? "Conectando" : connectionStatus === "error" ? "Error" : "En espera"}
+              aria-label={`Estado: ${connectionStatus}`}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Información"
+              onClick={() => setIsInfoOpen(true)}
+              className={styles.headerInfoButton}
+            >
+              <Info className="h-5 w-5" />
+            </Button>
+          </div>
+        </header>
+
+        {/* Main content - centered chat */}
+        <main className={styles.mainContent}>
+          <MinimalChat 
+            onContactRequest={() => openCalendar()} 
+            onConnectionStatusChange={(status, model) => {
+              setConnectionStatus(status);
+              if (model) setCurrentModel(model);
+            }}
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Información"
-            onClick={() => setIsInfoOpen(true)}
-            className={styles.headerInfoButton}
-          >
-            <Info className="h-5 w-5" />
-          </Button>
-        </div>
-      </header>
+        </main>
 
-      {/* Main content - centered chat */}
-      <main className={styles.mainContent}>
-        <MinimalChat 
-          onContactRequest={() => openCalendar()} 
-          onConnectionStatusChange={(status, model) => {
-            setConnectionStatus(status);
-            if (model) setCurrentModel(model);
-          }}
-        />
-      </main>
+      </div>
 
-      <InfoModal
-        isOpen={isInfoOpen}
-        onClose={() => setIsInfoOpen(false)}
-        repoUrl="https://github.com/sbarkerzamora/New-Portfolio.git"
-        projectName="Portfolio de Stephan Barker"
-        summary="Código abierto, minimalista y listo para reutilizar. Usa Next.js + TypeScript con animaciones suaves, chat embebido y flujos listos para booking y descarga de CV."
-        highlights={[
-          "Stack listo para producción: Next.js, TypeScript, diseño responsive.",
-          "Componentes listos: chat minimalista, modal de booking y CV generado.",
-          "Fácil de adaptar: textos y enlaces configurables desde props.",
-        ]}
-      />
+      {/* Services Section - Second viewport */}
+      <ServicesSection />
 
-      {/* Compact footer */}
+      {/* Fixed footer - visible on all sections */}
       <footer ref={footerRef} className={styles.footer}>
         <div className={styles.footerContent}>
           <span className={styles.footerName}>© {new Date().getFullYear()} Stephan Barker</span>
@@ -233,6 +228,18 @@ function HomeContent() {
         </div>
       </footer>
 
+      <InfoModal
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+        repoUrl="https://github.com/sbarkerzamora/New-Portfolio.git"
+        projectName="Portfolio de Stephan Barker"
+        summary="Código abierto, minimalista y listo para reutilizar. Usa Next.js + TypeScript con animaciones suaves, chat embebido y flujos listos para booking y descarga de CV."
+        highlights={[
+          "Stack listo para producción: Next.js, TypeScript, diseño responsive.",
+          "Componentes listos: chat minimalista, modal de booking y CV generado.",
+          "Fácil de adaptar: textos y enlaces configurables desde props.",
+        ]}
+      />
     </div>
   );
 }

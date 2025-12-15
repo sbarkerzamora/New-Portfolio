@@ -2,7 +2,7 @@
  * Page Styles
  * 
  * Styles for the main page layout including header,
- * main content area, and footer.
+ * main content area, footer, and multi-section scrolling.
  */
 
 .pageContainer {
@@ -12,7 +12,18 @@
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  overflow-y: auto;
   z-index: 1;
+}
+
+/* Hero section wrapper - first viewport */
+.heroSection {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
 /* Background ColorBends */
@@ -165,12 +176,19 @@
   min-height: calc(100vh - 200px);
 }
 
-/* Mobile: full screen chat */
+/* Mobile: allow scrolling for multi-section layout */
 @media (max-width: 640px) {
   .pageContainer {
-    height: 100vh;
-    height: 100dvh; /* Dynamic viewport height */
-    overflow: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .heroSection {
+    min-height: 100vh;
+    min-height: 100dvh;
+    position: relative;
   }
 
   .mainContent {
@@ -178,21 +196,23 @@
     min-height: 0;
     align-items: stretch;
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
     height: auto;
   }
 }
 
-/* Compact footer */
+/* Fixed footer - always at bottom */
 .footer {
-  position: relative;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
   width: 100%;
   padding: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(16px);
-  flex-shrink: 0;
 }
 
 .footerContent {
@@ -300,6 +320,7 @@
     height: 7px;
   }
 
+  /* Footer fixed at bottom on mobile */
   .footer {
     position: fixed;
     bottom: 0;
@@ -309,25 +330,6 @@
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(20px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .footerContent {
-    flex-wrap: wrap;
-    justify-content: center;
-    text-align: center;
-    gap: 0.6rem;
-  }
-
-  .footerActions {
-    gap: 0.6rem;
-  }
-
-  .footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 0.625rem 0.5rem;
     z-index: 100;
   }
 
@@ -336,6 +338,8 @@
     font-size: 0.6875rem;
     flex-wrap: nowrap;
     overflow: hidden;
+    justify-content: center;
+    text-align: center;
   }
 
   .footerName {
@@ -363,11 +367,6 @@
   .bookingButton svg {
     width: 14px;
     height: 14px;
-  }
-
-  .pageContainer {
-    min-height: 100vh;
-    min-height: 100dvh;
   }
 }
 
