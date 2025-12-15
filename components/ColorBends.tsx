@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 type ColorBendsProps = {
@@ -22,7 +22,7 @@ type ColorBendsProps = {
 const MAX_COLORS = 8 as const;
 
 const frag = `
-#define MAX_COLORS 8
+#define MAX_COLORS ${MAX_COLORS}
 uniform vec2 uCanvas;
 uniform float uTime;
 uniform float uSpeed;
@@ -135,34 +135,54 @@ export default function ColorBends({
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const rotationRef = useRef<number>(rotation);
   const autoRotateRef = useRef<number>(autoRotate);
+  const colorsRef = useRef<string[]>(colors);
   const pointerTargetRef = useRef<THREE.Vector2>(new THREE.Vector2(0, 0));
   const pointerCurrentRef = useRef<THREE.Vector2>(new THREE.Vector2(0, 0));
   const pointerSmoothRef = useRef<number>(8);
-  const [isMounted, setIsMounted] = useState(false);
+
+  // Keep refs updated
+  useEffect(() => {
+    colorsRef.current = colors;
+  }, [colors]);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted || !containerRef.current) return;
+    if (!containerRef.current) {
+      console.warn('ColorBends: containerRef.current is null');
+      return;
+    }
     
     const container = containerRef.current;
+    console.log('ColorBends: Container found', { 
+      width: container.offsetWidth, 
+      height: container.offsetHeight,
+      clientWidth: container.clientWidth,
+      clientHeight: container.clientHeight
+    });
     
-    // Wait a bit for container to have dimensions
+    // Use viewport dimensions directly since container is position:fixed
     const checkDimensions = () => {
-      const w = container.offsetWidth || window.innerWidth;
-      const h = container.offsetHeight || window.innerHeight;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      console.log('ColorBends: Using viewport dimensions', { w, h });
       if (w === 0 || h === 0) {
+        console.warn('ColorBends: Viewport has no dimensions, retrying...');
         setTimeout(checkDimensions, 100);
         return;
       }
+      console.log('ColorBends: Dimensions OK, initializing WebGL');
       initWebGL();
     };
     
+    let handleResize: (() => void) | null = null;
+    
     const initWebGL = () => {
-    const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    console.log('ColorBends: Initializing WebGL...');
+    let scene: THREE.Scene;
+    let camera: THREE.OrthographicCamera;
+    
+    try {
+    scene = new THREE.Scene();
+    camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
     const geometry = new THREE.PlaneGeometry(2, 2);
     const uColorsArray = Array.from({ length: MAX_COLORS }, () => new THREE.Vector3(0, 0, 0));
@@ -190,48 +210,70 @@ export default function ColorBends({
     });
     materialRef.current = material;
 
+    // Configure colors immediately
+    const toVec3 = (hex: string) => {
+      const h = hex.replace('#', '').trim();
+      const v =
+        h.length === 3
+          ? [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)]
+          : [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+      return new THREE.Vector3(v[0] / 255, v[1] / 255, v[2] / 255);
+    };
+
+    const currentColors = colorsRef.current || [];
+    const colorArr = currentColors.filter(Boolean).slice(0, MAX_COLORS).map(toVec3);
+    console.log('ColorBends: Initial colors setup', { colors: currentColors, arrLength: colorArr.length });
+    for (let i = 0; i < MAX_COLORS; i++) {
+      const vec = uColorsArray[i];
+      if (i < colorArr.length) vec.copy(colorArr[i]);
+      else vec.set(0, 0, 0);
+    }
+    material.uniforms.uColorCount.value = colorArr.length;
+    console.log('ColorBends: Color count set to', colorArr.length);
+
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    let renderer: THREE.WebGLRenderer;
-    try {
-      renderer = new THREE.WebGLRenderer({
-        antialias: false,
-        powerPreference: 'high-performance',
-        alpha: true,
-        preserveDrawingBuffer: false
-      });
-      rendererRef.current = renderer;
-      (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace;
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      renderer.setClearColor(0x000000, transparent ? 0 : 1);
-      
-      const canvas = renderer.domElement;
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-      canvas.style.display = 'block';
-      canvas.style.position = 'absolute';
-      canvas.style.top = '0';
-      canvas.style.left = '0';
-      canvas.style.zIndex = '0';
-      canvas.style.pointerEvents = 'none';
-      canvas.style.opacity = '1';
-      canvas.style.visibility = 'visible';
-      
-      container.appendChild(canvas);
-    } catch (error) {
-      console.error('ColorBends: Failed to initialize WebGL renderer', error);
-      return;
-    }
-
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      powerPreference: 'high-performance',
+      alpha: false
+    });
+    rendererRef.current = renderer;
+    (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x000000, 1);
+    
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    renderer.setSize(w, h, false);
+    (material.uniforms.uCanvas.value as THREE.Vector2).set(w, h);
+    console.log('ColorBends: Renderer size set to', { w, h });
+    
+    const canvas = renderer.domElement;
+    canvas.style.width = '100vw';
+    canvas.style.height = '100vh';
+    canvas.style.display = 'block';
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '0';
+    canvas.style.pointerEvents = 'none';
+    canvas.id = 'colorbends-canvas';
+    
+    console.log('ColorBends: Canvas created', { width: w, height: h });
+    container.appendChild(canvas);
+    console.log('ColorBends: Canvas appended to container');
+    
     const clock = new THREE.Clock();
 
-    const handleResize = () => {
-      const w = container.clientWidth || window.innerWidth;
-      const h = container.clientHeight || window.innerHeight;
-      if (w > 0 && h > 0 && renderer) {
-        renderer.setSize(w, h, false);
-        (material.uniforms.uCanvas.value as THREE.Vector2).set(w, h);
+    handleResize = () => {
+      if (!rendererRef.current || !materialRef.current) return;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      if (w > 0 && h > 0) {
+        rendererRef.current.setSize(w, h, false);
+        (materialRef.current.uniforms.uCanvas.value as THREE.Vector2).set(w, h);
       }
     };
 
@@ -246,26 +288,31 @@ export default function ColorBends({
     }
 
     const loop = () => {
-      if (!renderer || !materialRef.current) return;
+      if (!rendererRef.current || !materialRef.current || !scene || !camera) return;
       const dt = clock.getDelta();
       const elapsed = clock.elapsedTime;
-      material.uniforms.uTime.value = elapsed;
+      materialRef.current.uniforms.uTime.value = elapsed;
 
       const deg = (rotationRef.current % 360) + autoRotateRef.current * elapsed;
       const rad = (deg * Math.PI) / 180;
       const c = Math.cos(rad);
       const s = Math.sin(rad);
-      (material.uniforms.uRot.value as THREE.Vector2).set(c, s);
+      (materialRef.current.uniforms.uRot.value as THREE.Vector2).set(c, s);
 
       const cur = pointerCurrentRef.current;
       const tgt = pointerTargetRef.current;
       const amt = Math.min(1, dt * pointerSmoothRef.current);
       cur.lerp(tgt, amt);
-      (material.uniforms.uPointer.value as THREE.Vector2).copy(cur);
-      renderer.render(scene, camera);
+      (materialRef.current.uniforms.uPointer.value as THREE.Vector2).copy(cur);
+      rendererRef.current.render(scene, camera);
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
+    console.log('ColorBends: Animation loop started');
+    } catch (error) {
+      console.error('ColorBends: Error initializing WebGL', error);
+      return;
+    }
     };
     
     checkDimensions();
@@ -279,19 +326,23 @@ export default function ColorBends({
         resizeObserverRef.current.disconnect();
         resizeObserverRef.current = null;
       }
+      if (handleResize) {
+        (window as Window).removeEventListener('resize', handleResize);
+      }
       if (materialRef.current) {
         materialRef.current.dispose();
         materialRef.current = null;
       }
       if (rendererRef.current) {
-        if (rendererRef.current.domElement && containerRef.current && rendererRef.current.domElement.parentElement === containerRef.current) {
-          containerRef.current.removeChild(rendererRef.current.domElement);
+        const canvas = rendererRef.current.domElement;
+        if (canvas && canvas.parentNode) {
+          canvas.parentNode.removeChild(canvas);
         }
         rendererRef.current.dispose();
         rendererRef.current = null;
       }
     };
-  }, [isMounted]);
+  }, []);
 
   useEffect(() => {
     const material = materialRef.current;
@@ -318,19 +369,17 @@ export default function ColorBends({
     };
 
     const arr = (colors || []).filter(Boolean).slice(0, MAX_COLORS).map(toVec3);
+    console.log('ColorBends: Setting colors', { colors, arrLength: arr.length });
     for (let i = 0; i < MAX_COLORS; i++) {
       const vec = (material.uniforms.uColors.value as THREE.Vector3[])[i];
       if (i < arr.length) vec.copy(arr[i]);
       else vec.set(0, 0, 0);
     }
     material.uniforms.uColorCount.value = arr.length;
+    console.log('ColorBends: Color count set to', arr.length);
 
     material.uniforms.uTransparent.value = transparent ? 1 : 0;
-    if (renderer) {
-      renderer.setClearColor(0x000000, transparent ? 0 : 1);
-      renderer.domElement.style.opacity = '1';
-      renderer.domElement.style.pointerEvents = 'none';
-    }
+    if (renderer) renderer.setClearColor(0x000000, transparent ? 0 : 1);
   }, [
     rotation,
     autoRotate,
@@ -363,37 +412,19 @@ export default function ColorBends({
     };
   }, []);
 
-  if (!isMounted) {
-    return (
-      <div 
-        className={`w-full h-full relative overflow-hidden ${className}`} 
-        style={{ 
-          width: '100%', 
-          height: '100%', 
-          minWidth: '100%', 
-          minHeight: '100%',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          ...style 
-        }} 
-      />
-    );
-  }
-
   return (
     <div 
       ref={containerRef} 
       className={`w-full h-full relative overflow-hidden ${className}`} 
-      style={{ 
-        width: '100%', 
-        height: '100%', 
-        minWidth: '100%', 
+      style={{
+        width: '100%',
+        height: '100%',
+        minWidth: '100%',
         minHeight: '100%',
         position: 'absolute',
         top: 0,
         left: 0,
-        ...style 
+        ...style
       }} 
     />
   );

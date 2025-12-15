@@ -5,17 +5,10 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // External packages for server components (for @react-pdf/renderer)
   serverExternalPackages: ["@react-pdf/renderer"],
-  // Deshabilitar source maps en producción para acelerar el build
-  productionBrowserSourceMaps: false,
-  // Optimizar imágenes
-  images: {
-    unoptimized: false,
-  },
-  // Configuración de compilación
-  compiler: {
-    removeConsole: process.env.NODE_ENV === "production" ? {
-      exclude: ["error", "warn"],
-    } : false,
+  // Configuración de Turbopack (Next.js 16 usa Turbopack por defecto)
+  turbopack: {
+    // Configuración vacía para silenciar el warning
+    // El dynamic import con ssr: false es suficiente para Three.js
   },
 };
 

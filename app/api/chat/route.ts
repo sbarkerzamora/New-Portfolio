@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { loadProfile } from "@/lib/profile";
-import { streamText } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { streamText } from "ai";
 
 // Modelo a usar en OpenRouter
 const MODEL = "openai/gpt-4o-mini";
@@ -41,22 +41,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Log incoming messages for debugging
-    console.log("Received messages:", {
-      count: messages.length,
-      lastMessage: messages[messages.length - 1],
-      hasParts: messages[messages.length - 1]?.parts !== undefined,
-      hasContent: messages[messages.length - 1]?.content !== undefined,
-      allMessages: messages.map((msg, idx) => ({
-        index: idx,
-        role: msg.role,
-        hasParts: !!msg.parts,
-        hasContent: !!msg.content,
-        partsLength: msg.parts?.length || 0,
-        contentPreview: msg.content?.substring(0, 50) || extractTextFromMessage(msg).substring(0, 50),
-      })),
-    });
-
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       console.error("OpenRouter API key not set (OPENROUTER_API_KEY)");
@@ -92,34 +76,23 @@ export async function POST(req: Request) {
     );
 
     // Validate and clean messages
-    // Ensure messages are in the correct format for the AI SDK
-    // Convert from UIMessage format (with parts) to CoreMessage format (with content)
     const cleanedMessages = conversationMessages
       .map((msg, idx) => {
-        // Ensure role is valid
         const role = msg.role === "system" ? "user" : (msg.role as "user" | "assistant");
-        
-        // Extract text content from parts (AI SDK v5) or content (legacy)
         const content = extractTextFromMessage(msg);
         
         console.log(`Processing message ${idx}:`, {
           role,
           contentLength: content.length,
           contentPreview: content.substring(0, 50),
-          hasParts: !!msg.parts,
-          hasContent: !!msg.content,
         });
         
-        // Skip empty messages
         if (!content || content.length === 0) {
           console.warn(`Skipping empty message at index ${idx}`);
           return null;
         }
         
-        return {
-          role,
-          content,
-        };
+        return { role, content };
       })
       .filter((msg): msg is { role: "user" | "assistant"; content: string } => msg !== null);
 
@@ -131,48 +104,29 @@ export async function POST(req: Request) {
       );
     }
 
-    // Prepare messages for OpenRouter
-    const openRouter = createOpenRouter({
-      apiKey: apiKey,
-    });
-
     try {
-      // Use AI SDK streamText with OpenRouter
-      const result = streamText({
-        model: openRouter(MODEL),
-        system: systemPrompt,
-        messages: cleanedMessages,
-        temperature: 0.7,
+      // Create OpenRouter client
+      const openrouter = createOpenRouter({
+        apiKey,
       });
 
-      // Use toTextStreamResponse - this is the correct method for AI SDK v5
-      // DefaultChatTransport can handle text stream responses
-      const response = result.toTextStreamResponse();
-      
-      // Add headers for proper streaming
-      const headers = new Headers(response.headers);
-      headers.set('x-model-used', MODEL);
-      headers.set('Cache-Control', 'no-cache');
-      headers.set('Connection', 'keep-alive');
-      headers.set('Content-Type', 'text/plain; charset=utf-8');
-      
-      return new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: headers,
+      // Use streamText from AI SDK
+      const result = streamText({
+        model: openrouter(MODEL),
+        system: systemPrompt,
+        messages: cleanedMessages,
+      });
+
+      // Return the streaming response
+      return result.toTextStreamResponse({
+        headers: {
+          "x-model-used": MODEL,
+        },
       });
     } catch (error) {
       console.error("Error calling OpenRouter AI:", error);
       const errorMsg = error instanceof Error ? error.message : String(error);
-      const errorStack = error instanceof Error ? error.stack : undefined;
       
-      console.error("Error details:", {
-        message: errorMsg,
-        stack: errorStack,
-        errorType: error instanceof Error ? error.constructor.name : typeof error,
-      });
-      
-      // Check if it's a network error
       if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ETIMEDOUT'))) {
         return NextResponse.json(
           {
@@ -183,37 +137,17 @@ export async function POST(req: Request) {
         );
       }
       
-      // Check for API key or authentication errors
-      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized') || error.message.includes('API key'))) {
-        return NextResponse.json(
-          {
-            error: "Authentication error",
-            message: "Error de autenticación con OpenRouter. Por favor, verifica tu API key.",
-          },
-          { status: 401 }
-        );
-      }
-      
       return NextResponse.json(
         {
           error: "Error calling OpenRouter AI",
           message: errorMsg,
-          details: process.env.NODE_ENV === "development" ? errorStack : undefined,
         },
         { status: 500 }
       );
     }
   } catch (error) {
     console.error("Chat API error:", error);
-    
-    // Provide more detailed error information
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    
-    console.error("Error details:", {
-      message: errorMessage,
-      stack: errorStack,
-    });
 
     return NextResponse.json(
       { 
@@ -230,7 +164,6 @@ function buildSystemPrompt(profile: Awaited<ReturnType<typeof loadProfile>>) {
   const stats = profile.estadisticas;
   const stack = profile.stack_tecnologico;
   
-  // Build stack technology string
   const stackTech = [
     `Frontend: ${stack.frontend_moderno.join(", ")}`,
     `Backend: ${stack.backend_y_datos.join(", ")}`,
@@ -253,7 +186,7 @@ function buildSystemPrompt(profile: Awaited<ReturnType<typeof loadProfile>>) {
     .map((p) => {
       const impacto = p.impacto ? ` Impacto: ${p.impacto}.` : "";
       const techs = p.tecnologias ? ` Tecnologías: ${p.tecnologias.join(", ")}.` : "";
-      return `${p.nombre} (${p.categoria}): ${p.descripcion}.${techs}${impacto}${p.imagen ? ` (imagen: ${p.imagen})` : ""}`;
+      return `${p.nombre} (${p.categoria}): ${p.descripcion}.${techs}${impacto}`;
     })
     .join(" | ");
 
@@ -283,35 +216,27 @@ function buildSystemPrompt(profile: Awaited<ReturnType<typeof loadProfile>>) {
     "PROYECTOS DESTACADOS:",
     proyectos,
     "",
-        "ESTADÍSTICAS:",
-        `Más de ${stats.anos_experiencia} años de experiencia, ${stats.proyectos_exitosos} proyectos exitosos, ${stats.clientes_satisfechos} clientes satisfechos.`,
-        "",
-        "ENLACES:",
-        `GitHub: ${hero.enlaces.github}`,
-        `Portfolio: ${hero.enlaces.portfolio}`,
-        `CV PDF: ${hero.enlaces.cv} (disponible para descarga)`,
-        "",
-        "INSTRUCCIONES DE CONVERSACIÓN:",
-    "- Habla de forma natural, conversacional y amigable, como si estuvieras hablando con un amigo o colega.",
-    "- SIEMPRE invita al usuario a conocer más sobre ti al final de cada respuesta. Usa frases como: '¿Te gustaría saber más sobre...?', '¿Hay algo más que te interese?', '¿Quieres que te cuente sobre...?'",
+    "ESTADÍSTICAS:",
+    `Más de ${stats.anos_experiencia} años de experiencia, ${stats.proyectos_exitosos} proyectos exitosos, ${stats.clientes_satisfechos} clientes satisfechos.`,
+    "",
+    "ENLACES:",
+    `GitHub: ${hero.enlaces.github}`,
+    `Portfolio: ${hero.enlaces.portfolio}`,
+    `CV PDF: ${hero.enlaces.cv} (disponible para descarga)`,
+    "",
+    "INSTRUCCIONES DE CONVERSACIÓN:",
+    "- Habla de forma natural, conversacional y amigable.",
+    "- SIEMPRE invita al usuario a conocer más sobre ti al final de cada respuesta.",
     "- Sé entusiasta y apasionado cuando hablas de tus proyectos y tecnologías.",
-    "- Comparte detalles específicos y ejemplos concretos cuando sea relevante.",
     "",
     "REGLAS IMPORTANTES SOBRE MOSTRAR CONTENIDO VISUAL:",
-    "- Cuando el usuario pregunta por PROYECTOS o PORTAFOLIO, DEBES incluir en tu respuesta la frase exacta: 'Aquí tienes un carrusel con mis proyectos destacados' o 'Puedes ver un carrusel con mis proyectos'.",
-    "- Cuando el usuario pregunta por TECNOLOGÍAS, STACK TECNOLÓGICO o HERRAMIENTAS, DEBES incluir en tu respuesta la frase exacta: 'Aquí tienes un marquee con las tecnologías que uso' o 'Puedes ver un marquee con mi stack tecnológico'.",
-        "- Cuando el usuario pregunta por CONTACTO, CITA, RESERVAR, o '¿Cómo puedo contactarte?', DEBES mencionar explícitamente que puedes abrir el calendario de reservas usando Cal.com. El sistema mostrará automáticamente el widget de Cal.com cuando detecte estas palabras. Responde de forma clara y directa, por ejemplo: '¡Por supuesto! Puedes reservar una cita conmigo usando mi calendario de Cal.com. Aquí tienes el widget para que elijas el horario que mejor te convenga.'",
-        "- Cuando el usuario pregunta por CV, CURRICULUM, o quiere descargar información profesional, menciona que tienen disponible mi CV actualizado en PDF con diseño profesional. Pueden descargarlo desde el botón en el footer o desde las acciones rápidas del chat.",
-        "- NUNCA menciones proyectos cuando te pregunten por tecnologías, y viceversa.",
-    "- Si el usuario pregunta por tecnologías, habla SOLO de tecnologías, herramientas y stack. NO menciones proyectos a menos que el usuario pregunte específicamente por ellos.",
-    "- Si el usuario pregunta por proyectos, habla SOLO de proyectos y portafolio. NO menciones tecnologías a menos que el usuario pregunte específicamente por ellas.",
+    "- Cuando el usuario pregunta por PROYECTOS o PORTAFOLIO, incluye: 'Aquí tienes un carrusel con mis proyectos destacados'.",
+    "- Cuando el usuario pregunta por TECNOLOGÍAS, STACK TECNOLÓGICO o HERRAMIENTAS, incluye: 'Aquí tienes un marquee con las tecnologías que uso'.",
+    "- Cuando el usuario pregunta por CONTACTO, CITA o RESERVAR, menciona que puedes abrir el calendario de reservas.",
+    "- Cuando el usuario pregunta por CV, CURRICULUM, menciona que tienen disponible mi CV actualizado en PDF.",
     "",
-    "- Si no encuentras información específica, sé honesto y ofrece hablar de algo relacionado que sí conozcas.",
-    "- Mantén las respuestas concisas pero informativas (2-4 oraciones normalmente, más si el usuario pide detalles).",
+    "- Mantén las respuestas concisas pero informativas (2-4 oraciones normalmente).",
     "- Usa emojis ocasionalmente para hacer la conversación más amigable (👋 😊 🚀 💻 ⚡).",
     "- Responde SIEMPRE en español.",
-    "",
-    "RECUERDA: El objetivo es que el usuario se sienta como si estuviera hablando directamente contigo, Stephan Barker, y que siempre quiera conocer más sobre tu trabajo y experiencia."
   ].filter(Boolean).join("\n");
 }
-

@@ -9,11 +9,6 @@ import {
   Github,
   Terminal,
   X,
-  Code,
-  Sparkles,
-  Settings,
-  FileCode,
-  Package,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -103,10 +98,8 @@ export default function InfoModal({
       >
         <div className={styles.modalHeader}>
           <div className={styles.headerMeta}>
-            <div className={styles.badgeWithIcon}>
-              <Sparkles className="h-3.5 w-3.5" />
-              <span className={styles.badge}>Open Source</span>
-            </div>
+            <span className={styles.badge}>Open Source</span>
+            <p className={styles.muted}>Disponible en GitHub para clonar o fork.</p>
           </div>
           <Button
             variant="ghost"
@@ -123,10 +116,7 @@ export default function InfoModal({
         <div className={styles.body}>
           <div className={styles.intro}>
             <div>
-              <div className={styles.eyebrowWithIcon}>
-                <Code className="h-3.5 w-3.5" />
-                <p className={styles.eyebrow}>Proyecto</p>
-              </div>
+              <p className={styles.eyebrow}>Proyecto</p>
               <h3 id="info-modal-title" className={styles.title}>
                 {projectName}
               </h3>
@@ -134,69 +124,72 @@ export default function InfoModal({
             </div>
             <div className={styles.repoCard}>
               <div className={styles.repoTitle}>
-                <Github className="h-4 w-4" />
+                <Github className="h-5 w-5" />
                 <span>{cleanRepoUrl.replace("https://github.com/", "")}</span>
               </div>
+              <p className={styles.repoHint}>
+                Clona, fórcalo o descárgalo. Personaliza textos y links pasando props a
+                `InfoModal` o ajustando este bloque.
+              </p>
               <div className={styles.repoActions}>
                 <a
                   href={cleanRepoUrl}
                   target="_blank"
                   rel="noreferrer"
                   className={cn(
-                    buttonVariants({ variant: "default", size: "sm" }),
+                    buttonVariants({ variant: "default", size: "lg" }),
                     styles.primaryAction,
                   )}
                 >
-                  <Github className="h-4 w-4" />
                   Ver en GitHub
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <ExternalLink className="h-4 w-4" />
                 </a>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="lg"
                   onClick={() => copyToClipboard(httpsClone, "https")}
                   className={styles.secondaryAction}
                 >
                   {copiedHttps ? (
                     <>
-                      <Check className="h-4 w-4" />
                       Copiado
+                      <Check className="h-4 w-4" />
                     </>
                   ) : (
                     <>
+                      Copiar git clone HTTPS
                       <Copy className="h-4 w-4" />
-                      HTTPS
                     </>
                   )}
                 </Button>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  variant="ghost"
+                  size="lg"
                   onClick={() => copyToClipboard(sshClone, "ssh")}
-                  className={styles.secondaryAction}
+                  className={styles.ghostAction}
                 >
                   {copiedSsh ? (
                     <>
-                      <Check className="h-4 w-4" />
                       Copiado
+                      <Check className="h-4 w-4" />
                     </>
                   ) : (
                     <>
+                      Copiar git clone SSH
                       <Terminal className="h-4 w-4" />
-                      SSH
                     </>
                   )}
                 </Button>
                 <a
                   href={zipUrl}
                   className={cn(
-                    buttonVariants({ variant: "outline", size: "sm" }),
+                    buttonVariants({ variant: "secondary", size: "lg" }),
                     styles.secondaryAction,
                   )}
                   download
                 >
+                  Descargar ZIP
                   <Download className="h-4 w-4" />
-                  ZIP
                 </a>
               </div>
             </div>
@@ -204,44 +197,32 @@ export default function InfoModal({
 
           <div className={styles.grid}>
             <div className={styles.panel}>
-              <div className={styles.eyebrowWithIcon}>
-                <Package className="h-3.5 w-3.5" />
-                <p className={styles.eyebrow}>Lo que incluye</p>
-              </div>
+              <p className={styles.eyebrow}>Lo que incluye</p>
               <ul className={styles.list}>
                 {highlights.map((item) => (
                   <li key={item} className={styles.listItem}>
-                    <div className={styles.listIcon}>
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
+                    <span className={styles.bullet} aria-hidden>
+                      ●
+                    </span>
                     <span>{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
             <div className={styles.panel}>
-              <div className={styles.eyebrowWithIcon}>
-                <Settings className="h-3.5 w-3.5" />
-                <p className={styles.eyebrow}>Cómo personalizar</p>
-              </div>
+              <p className={styles.eyebrow}>Cómo personalizar</p>
               <div className={styles.instructions}>
-                <div className={styles.instructionItem}>
-                  <FileCode className="h-4 w-4" />
-                  <p>
-                    Pasa tus propios textos, enlaces o comandos como props a{" "}
-                    <code className={styles.code}>InfoModal</code> o edita las
-                    constantes <code className={styles.code}>summary</code>{" "}
-                    y <code className={styles.code}>highlights</code>.
-                  </p>
-                </div>
-                <div className={styles.instructionItem}>
-                  <Code className="h-4 w-4" />
-                  <p>
-                    Ajusta <code className={styles.code}>repoUrl</code> para apuntar a otro
-                    repositorio y se actualizarán el enlace, los comandos de clonación y la
-                    descarga ZIP.
-                  </p>
-                </div>
+                <p>
+                  Pasa tus propios textos, enlaces o comandos como props a{" "}
+                  <code className={styles.code}>InfoModal</code> o edita las
+                  constantes <code className={styles.code}>summary</code>{" "}
+                  y <code className={styles.code}>highlights</code>.
+                </p>
+                <p>
+                  Ajusta <code className={styles.code}>repoUrl</code> para apuntar a otro
+                  repositorio y se actualizarán el enlace, los comandos de clonación y la
+                  descarga ZIP.
+                </p>
               </div>
             </div>
           </div>

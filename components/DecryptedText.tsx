@@ -36,19 +36,6 @@ export default function DecryptedText({
   const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   const containerRef = useRef<HTMLSpanElement>(null);
 
-  // Initialize all indices as revealed if animateOn is 'view' to show text immediately
-  useEffect(() => {
-    if (animateOn === 'view' || animateOn === 'both') {
-      const allIndices = new Set<number>();
-      for (let i = 0; i < text.length; i++) {
-        allIndices.add(i);
-      }
-      setRevealedIndices(allIndices);
-      setIsScrambling(false);
-      setIsHovering(true); // Trigger animation on view
-    }
-  }, [text, animateOn]);
-
   useEffect(() => {
     let interval: NodeJS.Timeout;
     let currentIteration = 0;
@@ -198,22 +185,17 @@ export default function DecryptedText({
     <motion.span
       ref={containerRef}
       className={`inline-block whitespace-pre-wrap ${parentClassName}`}
-      style={{ display: 'inline-block', opacity: 1, visibility: 'visible' }}
       {...hoverProps}
       {...props}
     >
       <span className="sr-only">{displayText}</span>
 
-      <span aria-hidden="true" style={{ display: 'inline-block', opacity: 1, visibility: 'visible', color: 'inherit' }}>
+      <span aria-hidden="true">
         {displayText.split('').map((char, index) => {
-          const isRevealedOrDone = revealedIndices.has(index) || !isScrambling || (animateOn === 'view' && !isHovering);
+          const isRevealedOrDone = revealedIndices.has(index) || !isScrambling || !isHovering;
 
           return (
-            <span 
-              key={index} 
-              className={isRevealedOrDone ? className : encryptedClassName}
-              style={{ display: 'inline-block', opacity: 1, visibility: 'visible', color: 'inherit' }}
-            >
+            <span key={index} className={isRevealedOrDone ? className : encryptedClassName}>
               {char}
             </span>
           );

@@ -20,10 +20,8 @@ COPY . .
 
 # Variables de entorno para el build (se pueden sobrescribir en Dokploy)
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-ENV NEXT_PRIVATE_STANDALONE=true
 
-# Construir la aplicación con timeout aumentado
+# Construir la aplicación
 RUN npm run build
 
 # Stage 3: Runner

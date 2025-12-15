@@ -44,10 +44,19 @@ function HomeContent() {
   const headerRef = useRef<HTMLElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
 
-  // Entrance animations for all content using GSAP
+  // Entrance animations for avatar and footer using GSAP
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Header animation
+      if (avatarRef.current) {
+        gsap.from(avatarRef.current, {
+          opacity: 0,
+          scale: 0.85,
+          y: -12,
+          duration: 0.6,
+          ease: "power2.out",
+          delay: 0.15,
+        });
+      }
       if (headerRef.current) {
         gsap.from(headerRef.current, {
           opacity: 0,
@@ -56,62 +65,13 @@ function HomeContent() {
           ease: "power1.out",
         });
       }
-      
-      // Avatar animation
-      if (avatarRef.current) {
-        gsap.from(avatarRef.current, {
-          opacity: 0,
-          scale: 0.85,
-          duration: 0.6,
-          ease: "power2.out",
-          delay: 0.15,
-        });
-      }
-      
-      // Title animation
-      const titleElement = document.querySelector(`.${styles.headerTitle}`);
-      if (titleElement) {
-        gsap.from(titleElement, {
-          opacity: 0,
-          x: -10,
-          duration: 0.5,
-          ease: "power1.out",
-          delay: 0.2,
-        });
-      }
-      
-      // Right section (status + info button) animation
-      const rightSection = document.querySelector(`.${styles.headerRightSection}`);
-      if (rightSection) {
-        gsap.from(rightSection, {
-          opacity: 0,
-          x: 10,
-          duration: 0.5,
-          ease: "power1.out",
-          delay: 0.25,
-        });
-      }
-      
-      // Footer animation
       if (footerRef.current) {
         gsap.from(footerRef.current, {
           opacity: 0,
           y: 12,
           duration: 0.6,
           ease: "power1.out",
-          delay: 0.3,
-        });
-      }
-      
-      // Main content animation
-      const mainContent = document.querySelector(`.${styles.mainContent}`);
-      if (mainContent) {
-        gsap.from(mainContent, {
-          opacity: 0,
-          y: 20,
-          duration: 0.6,
-          ease: "power2.out",
-          delay: 0.1,
+          delay: 0.25,
         });
       }
     });
@@ -147,52 +107,46 @@ function HomeContent() {
 
   return (
     <div className={styles.pageContainer}>
-      {/* ColorBends background */}
+      {/* ColorBends animated background */}
       <div className={styles.background}>
         <ColorBends
           colors={["#10b981", "#34d399", "#6ee7b7"]}
           rotation={30}
-          speed={0.5}
+          speed={0.3}
           scale={1.0}
-          frequency={2.0}
-          warpStrength={1.4}
-          mouseInfluence={0.9}
-          parallax={0.7}
+          frequency={1.5}
+          warpStrength={1.2}
+          mouseInfluence={0.5}
+          parallax={0.4}
           noise={0.05}
-          transparent={true}
-          style={{ width: "100%", height: "100%", display: "block" }}
+          transparent={false}
+          style={{ width: "100%", height: "100%" }}
         />
-        {/* Fallback gradient mientras carga */}
-        <div className={styles.backgroundFallback} />
       </div>
 
       {/* Animated header */}
       <header ref={headerRef} className={cn(styles.header, "animate-in fade-in-0 duration-500")}>
-        <div ref={avatarRef} className={styles.headerAvatarWrap} aria-label="Avatar">
-          <Image
-            src="/assets/images/avatar.png"
-            alt="Stephan Barker"
-            width={48}
-            height={48}
-            className={styles.headerAvatar}
-            priority
-          />
-        </div>
-        {/* Title for desktop */}
-        <div className={styles.headerTitle}>
-          <span className={styles.decryptedTextParent}>
-            <DecryptedText
-              text="Stephan Barker"
-              animateOn="view"
-              revealDirection="center"
-              speed={80}
-              maxIterations={15}
-              className={styles.decryptedText}
+        {/* Left section - Avatar */}
+        <div className={styles.headerLeft}>
+          <div ref={avatarRef} className={styles.headerAvatarWrap} aria-label="Avatar">
+            <Image
+              src="/assets/images/avatar.png"
+              alt="Stephan Barker"
+              width={36}
+              height={36}
+              className={styles.headerAvatar}
+              priority
             />
-          </span>
+          </div>
         </div>
-        {/* Connection status and info button - positioned together */}
-        <div className={styles.headerRightSection}>
+
+        {/* Center section - Title */}
+        <div className={styles.headerCenter}>
+          <span className={styles.headerTitle}>Stephan Barker</span>
+        </div>
+
+        {/* Right section - Connection status + Info button */}
+        <div className={styles.headerRight}>
           <span
             className={cn(
               styles.headerStatusDot,
@@ -204,13 +158,13 @@ function HomeContent() {
                 ? styles.headerStatusError
                 : styles.headerStatusIdle
             )}
-            aria-label={`Estado: ${connectionStatus === "connected" ? "Conectado" : connectionStatus === "connecting" ? "Conectando" : connectionStatus === "error" ? "Error" : "En espera"}`}
             title={connectionStatus === "connected" ? "Conectado" : connectionStatus === "connecting" ? "Conectando" : connectionStatus === "error" ? "Error" : "En espera"}
+            aria-label={`Estado: ${connectionStatus}`}
           />
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Sobre"
+            aria-label="Información"
             onClick={() => setIsInfoOpen(true)}
             className={styles.headerInfoButton}
           >

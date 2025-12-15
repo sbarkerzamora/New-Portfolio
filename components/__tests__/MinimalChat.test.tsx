@@ -158,7 +158,7 @@ describe("MinimalChat", () => {
     it("should limit displayed messages to MAX_MESSAGES (10)", async () => {
       render(<MinimalChat />);
       
-      const input = screen.getByPlaceholderText("Escribe tu mensaje...");
+      const input = screen.getByPlaceholderText("Escribe tu mensaje...") as HTMLInputElement;
       const sendButton = screen.getByLabelText("Enviar mensaje");
 
       // Send 12 messages (should only show last 10)
