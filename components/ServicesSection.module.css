@@ -302,7 +302,10 @@
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .section {
-    padding: 3rem 1rem;
+    padding: 3rem 1rem 5rem;
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
   }
 
   .header {
@@ -320,5 +323,13 @@
   .tag {
     padding: 0.3125rem 0.625rem;
     font-size: 0.625rem;
+  }
+
+  .grid {
+    gap: 1rem;
+  }
+
+  .imageContainer {
+    aspect-ratio: 16 / 8;
   }
 }
