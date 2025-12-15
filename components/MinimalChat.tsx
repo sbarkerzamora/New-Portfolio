@@ -29,6 +29,7 @@ import ProjectsCarousel from "./ProjectsCarousel";
 import TechnologiesMarquee from "./TechnologiesMarquee";
 import profileData from "@/docs/profile.json";
 import Image from "next/image";
+import gsap from "gsap";
 
 // Maximum number of messages to display
 const MAX_MESSAGES = 10;
@@ -260,6 +261,7 @@ export type Message = {
 interface MinimalChatProps {
   className?: string;
   onContactRequest?: () => void; // Callback when contact is requested
+  onConnectionStatusChange?: (status: "idle" | "connecting" | "connected" | "error", model?: string) => void; // Callback to pass connection status to parent
 }
 
 /**
@@ -313,17 +315,37 @@ const getMessageText = (msg: UIMessage): string => {
     .join("");
 };
 
-export default function MinimalChat({ className, onContactRequest }: MinimalChatProps) {
+export default function MinimalChat({ className, onContactRequest, onConnectionStatusChange }: MinimalChatProps) {
   // Get Cal.com context to show calendar in chat
   const { showCalendar, setShowCalendar } = useCalModal();
   const [calLoaded, setCalLoaded] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "connecting" | "connected" | "error">("idle");
   const [currentModel, setCurrentModel] = useState<string>("");
   const [error, setError] = useState("");
-  const [showWelcome, setShowWelcome] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !localStorage.getItem(WELCOME_MESSAGE_KEY);
-  });
+  const [showWelcome, setShowWelcome] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  const messagesRef = useRef<HTMLDivElement | null>(null);
+  
+  // Check localStorage only on client after hydration
+  useEffect(() => {
+    const shouldShow = !localStorage.getItem(WELCOME_MESSAGE_KEY);
+    setShowWelcome(shouldShow);
+  }, []);
+
+  // Animate chat entrance and message flow (especially on mobile)
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      if (chatContainerRef.current) {
+        gsap.from(chatContainerRef.current, {
+          opacity: 0,
+          y: 18,
+          duration: 0.45,
+          ease: "power2.out",
+        });
+      }
+    });
+    return () => ctx.revert();
+  }, []);
 
   // Local state for input (AI SDK v5 doesn't provide input state)
   const [input, setInput] = useState("");
@@ -406,26 +428,21 @@ He trabajado en proyectos como Tu Menú Digital (una plataforma completa para re
 Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría saber? Puedes preguntarme sobre mis proyectos, tecnologías que uso, mi experiencia, o cualquier cosa que te interese. ¡Estoy aquí para conversar! 😊`,
       }],
     }],
-    onResponse: (response) => {
-      console.log("useChat onResponse:", {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries()),
-        ok: response.ok,
-      });
-    },
-    onFinish: (message) => {
-      console.log("useChat onFinish:", {
-        id: message.id,
-        role: message.role,
-        contentLength: getMessageText(message).length,
-        contentPreview: getMessageText(message).substring(0, 100),
-      });
-    },
-    onError: (error) => {
-      console.error("useChat onError:", error);
-    },
   });
+
+  // Animate messages when new ones arrive
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      if (messagesRef.current) {
+        gsap.fromTo(
+          messagesRef.current.querySelectorAll("[data-message]"),
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.25, stagger: 0.05, ease: "power1.out" }
+        );
+      }
+    }, messagesRef);
+    return () => ctx.revert();
+  }, [aiMessages]);
 
   // Update connection status based on chat status
   useEffect(() => {
@@ -439,6 +456,13 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       setConnectionStatus("idle");
     }
   }, [status]);
+
+  // Notify parent of connection status changes
+  useEffect(() => {
+    if (onConnectionStatusChange) {
+      onConnectionStatusChange(connectionStatus, currentModel);
+    }
+  }, [connectionStatus, currentModel, onConnectionStatusChange]);
 
   // Initialize Cal.com API when calendar should be shown
   useEffect(() => {
@@ -737,7 +761,7 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
   }, [showCalendar, aiMessages, sendMessage]);
 
   return (
-    <div className={cn(styles.chatContainer, className)}>
+    <div ref={chatContainerRef} className={cn(styles.chatContainer, className)}>
       {/* Connection indicator (fixed, compact, minimal) */}
       <div
         className={styles.connectionIndicator}
@@ -763,21 +787,6 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
           {connectionStatus === "idle" && "En espera"}
         </span>
         {currentModel && <span className={styles.modelBadge}>{currentModel}</span>}
-      </div>
-
-      {/* Avatar and title section */}
-      <div className={styles.avatarSection}>
-        <div className={styles.avatarContainer}>
-          <Image
-            src="/assets/images/avatar.png"
-            alt="Stephan Barker"
-            width={80}
-            height={80}
-            className={styles.avatar}
-            priority
-          />
-        </div>
-        <h2 className={styles.avatarTitle}>Full Stack Developer</h2>
       </div>
 
       {/* Welcome message banner */}
@@ -811,10 +820,11 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
             <p>No hay mensajes aún. Escribe algo para comenzar.</p>
           </div>
         ) : (
-          <div className={styles.messagesList}>
+          <div ref={messagesRef} className={styles.messagesList}>
             {displayMessages.map((message) => (
               <div
                 key={message.id}
+                data-message
                 className={cn(
                   styles.messageBubble,
                   message.role === "user" ? styles.userMessage : styles.assistantMessage,

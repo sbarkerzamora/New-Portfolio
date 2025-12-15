@@ -31,6 +31,7 @@
 .modalContent {
   width: 100%;
   max-width: 980px;
+  max-height: 90vh;
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
     hsl(var(--card));
   border: 1px solid hsl(var(--border));
@@ -39,6 +40,8 @@
   overflow: hidden;
   transform: translateY(18px);
   opacity: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .modalOpen {
@@ -106,6 +109,10 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .intro {
@@ -250,14 +257,41 @@
 }
 
 @media (max-width: 640px) {
+  .modalOverlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
   .modalContent {
     max-width: 100%;
-    margin: auto;
-    border-radius: 1rem;
+    max-height: 95vh;
+    margin: 0;
+    border-radius: 1rem 1rem 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .modalHeader {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .headerMeta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 
   .body {
-    padding: 1.25rem;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .intro {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .repoActions {
@@ -265,10 +299,18 @@
   }
 
   .title {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
 
   .summary {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding: 0.875rem;
   }
 }
