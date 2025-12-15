@@ -23,10 +23,16 @@ import MinimalChat from "@/components/MinimalChat";
 import DecryptedText from "@/components/DecryptedText";
 import InfoModal from "@/components/InfoModal";
 import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
-import ColorBends from "@/components/ColorBends";
+import dynamic from "next/dynamic";
 import styles from "./page.module.css";
 import Image from "next/image";
 import gsap from "gsap";
+
+// Dynamic import para ColorBends (solo cliente, no SSR)
+const ColorBends = dynamic(() => import("@/components/ColorBends"), {
+  ssr: false,
+  loading: () => null,
+});
 
 function HomeContent() {
   const { openCalendar } = useCalModal();
@@ -144,18 +150,20 @@ function HomeContent() {
       {/* ColorBends background */}
       <div className={styles.background}>
         <ColorBends
-          colors={["#10b981", "#34d399", "#a7f3d0"]}
+          colors={["#10b981", "#34d399", "#6ee7b7"]}
           rotation={30}
-          speed={0.45}
-          scale={1.05}
-          frequency={1.9}
-          warpStrength={1.35}
-          mouseInfluence={0.8}
-          parallax={0.6}
-          noise={0.06}
-          transparent={false}
-          style={{ width: "100%", height: "100%", opacity: 0.95 }}
+          speed={0.5}
+          scale={1.0}
+          frequency={2.0}
+          warpStrength={1.4}
+          mouseInfluence={0.9}
+          parallax={0.7}
+          noise={0.05}
+          transparent={true}
+          style={{ width: "100%", height: "100%", display: "block" }}
         />
+        {/* Fallback gradient mientras carga */}
+        <div className={styles.backgroundFallback} />
       </div>
 
       {/* Animated header */}

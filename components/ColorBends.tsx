@@ -1,4 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+"use client";
+
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
 type ColorBendsProps = {
@@ -136,9 +138,29 @@ export default function ColorBends({
   const pointerTargetRef = useRef<THREE.Vector2>(new THREE.Vector2(0, 0));
   const pointerCurrentRef = useRef<THREE.Vector2>(new THREE.Vector2(0, 0));
   const pointerSmoothRef = useRef<number>(8);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    const container = containerRef.current!;
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted || !containerRef.current) return;
+    
+    const container = containerRef.current;
+    
+    // Wait a bit for container to have dimensions
+    const checkDimensions = () => {
+      const w = container.offsetWidth || window.innerWidth;
+      const h = container.offsetHeight || window.innerHeight;
+      if (w === 0 || h === 0) {
+        setTimeout(checkDimensions, 100);
+        return;
+      }
+      initWebGL();
+    };
+    
+    const initWebGL = () => {
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
@@ -171,27 +193,46 @@ export default function ColorBends({
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: false,
-      powerPreference: 'high-performance',
-      alpha: true
-    });
-    rendererRef.current = renderer;
-    (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setClearColor(0x000000, transparent ? 0 : 1);
-    renderer.domElement.style.width = '100%';
-    renderer.domElement.style.height = '100%';
-    renderer.domElement.style.display = 'block';
-    container.appendChild(renderer.domElement);
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: false,
+        powerPreference: 'high-performance',
+        alpha: true,
+        preserveDrawingBuffer: false
+      });
+      rendererRef.current = renderer;
+      (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setClearColor(0x000000, transparent ? 0 : 1);
+      
+      const canvas = renderer.domElement;
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.display = 'block';
+      canvas.style.position = 'absolute';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.zIndex = '0';
+      canvas.style.pointerEvents = 'none';
+      canvas.style.opacity = '1';
+      canvas.style.visibility = 'visible';
+      
+      container.appendChild(canvas);
+    } catch (error) {
+      console.error('ColorBends: Failed to initialize WebGL renderer', error);
+      return;
+    }
 
     const clock = new THREE.Clock();
 
     const handleResize = () => {
-      const w = container.clientWidth || 1;
-      const h = container.clientHeight || 1;
-      renderer.setSize(w, h, false);
-      (material.uniforms.uCanvas.value as THREE.Vector2).set(w, h);
+      const w = container.clientWidth || window.innerWidth;
+      const h = container.clientHeight || window.innerHeight;
+      if (w > 0 && h > 0 && renderer) {
+        renderer.setSize(w, h, false);
+        (material.uniforms.uCanvas.value as THREE.Vector2).set(w, h);
+      }
     };
 
     handleResize();
@@ -205,6 +246,7 @@ export default function ColorBends({
     }
 
     const loop = () => {
+      if (!renderer || !materialRef.current) return;
       const dt = clock.getDelta();
       const elapsed = clock.elapsedTime;
       material.uniforms.uTime.value = elapsed;
@@ -224,19 +266,32 @@ export default function ColorBends({
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);
+    };
+    
+    checkDimensions();
 
     return () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      if (resizeObserverRef.current) resizeObserverRef.current.disconnect();
-      else (window as Window).removeEventListener('resize', handleResize);
-      geometry.dispose();
-      material.dispose();
-      renderer.dispose();
-      if (renderer.domElement && renderer.domElement.parentElement === container) {
-        container.removeChild(renderer.domElement);
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+        resizeObserverRef.current = null;
+      }
+      if (materialRef.current) {
+        materialRef.current.dispose();
+        materialRef.current = null;
+      }
+      if (rendererRef.current) {
+        if (rendererRef.current.domElement && containerRef.current && rendererRef.current.domElement.parentElement === containerRef.current) {
+          containerRef.current.removeChild(rendererRef.current.domElement);
+        }
+        rendererRef.current.dispose();
+        rendererRef.current = null;
       }
     };
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
     const material = materialRef.current;
@@ -271,7 +326,11 @@ export default function ColorBends({
     material.uniforms.uColorCount.value = arr.length;
 
     material.uniforms.uTransparent.value = transparent ? 1 : 0;
-    if (renderer) renderer.setClearColor(0x000000, transparent ? 0 : 1);
+    if (renderer) {
+      renderer.setClearColor(0x000000, transparent ? 0 : 1);
+      renderer.domElement.style.opacity = '1';
+      renderer.domElement.style.pointerEvents = 'none';
+    }
   }, [
     rotation,
     autoRotate,
@@ -304,5 +363,38 @@ export default function ColorBends({
     };
   }, []);
 
-  return <div ref={containerRef} className={`w-full h-full relative overflow-hidden ${className}`} style={style} />;
+  if (!isMounted) {
+    return (
+      <div 
+        className={`w-full h-full relative overflow-hidden ${className}`} 
+        style={{ 
+          width: '100%', 
+          height: '100%', 
+          minWidth: '100%', 
+          minHeight: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          ...style 
+        }} 
+      />
+    );
+  }
+
+  return (
+    <div 
+      ref={containerRef} 
+      className={`w-full h-full relative overflow-hidden ${className}`} 
+      style={{ 
+        width: '100%', 
+        height: '100%', 
+        minWidth: '100%', 
+        minHeight: '100%',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        ...style 
+      }} 
+    />
+  );
 }
