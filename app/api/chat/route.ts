@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { loadProfile } from "@/lib/profile";
 import { streamText } from "ai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 
-// Modelo a usar en Cloudflare Workers AI
-const MODEL = "@cf/openai/gpt-oss-20b";
+// Modelo a usar en OpenRouter
+const MODEL = "openai/gpt-4o-mini";
 
 export const runtime = "nodejs";
 
@@ -56,12 +57,11 @@ export async function POST(req: Request) {
       })),
     });
 
-    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-    const apiKey = process.env.CLOUDFLARE_API_TOKEN;
-    if (!accountId || !apiKey) {
-      console.error("Cloudflare credentials not set (CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN)");
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+      console.error("OpenRouter API key not set (OPENROUTER_API_KEY)");
       return NextResponse.json(
-        { error: "Cloudflare credentials not set" },
+        { error: "OpenRouter API key not set" },
         { status: 500 },
       );
     }
@@ -81,9 +81,8 @@ export async function POST(req: Request) {
     const systemPrompt = buildSystemPrompt(profile);
 
     // Log API key status (without exposing the key)
-    console.log("Cloudflare AI configuration:", {
+    console.log("OpenRouter AI configuration:", {
       hasApiKey: !!apiKey,
-      hasAccountId: !!accountId,
       model: MODEL,
     });
 
@@ -132,173 +131,24 @@ export async function POST(req: Request) {
       );
     }
 
-    // Prepare messages for Cloudflare AI
-    // The @cf/openai/gpt-oss-20b model expects OpenAI-compatible "messages" format
-    const cfMessages = [
-      { role: "system", content: systemPrompt },
-      ...cleanedMessages
-    ];
+    // Prepare messages for OpenRouter
+    const openRouter = createOpenRouter({
+      apiKey: apiKey,
+    });
 
     try {
-      // Make direct HTTP call to Cloudflare Workers AI
-      const cfUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${MODEL}`;
-      
-      // Convert messages to a single prompt string for /ai/run/ endpoint
-      const systemMessage = cfMessages.find(m => m.role === "system");
-      const conversationMessages = cfMessages.filter(m => m.role !== "system");
-      
-      let fullPrompt = "";
-      if (systemMessage) {
-        fullPrompt += `${systemMessage.content}\n\n`;
-      }
-      
-      // Format conversation as a simple prompt
-      for (const msg of conversationMessages) {
-        const roleLabel = msg.role === "user" ? "User" : "Assistant";
-        fullPrompt += `${roleLabel}: ${msg.content}\n\n`;
-      }
-      fullPrompt += "Assistant:";
-
-      console.log("Cloudflare request body:", {
-        inputLength: fullPrompt.length,
-        inputPreview: fullPrompt.substring(0, 200),
+      // Use AI SDK streamText with OpenRouter
+      const result = streamText({
+        model: openRouter(MODEL),
+        system: systemPrompt,
+        messages: cleanedMessages,
+        temperature: 0.7,
       });
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
-      try {
-        const cfResponse = await fetch(cfUrl, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            input: fullPrompt,
-            stream: false,
-          }),
-          signal: controller.signal,
-        });
-        
-        clearTimeout(timeoutId);
-
-        if (!cfResponse.ok) {
-          const errorText = await cfResponse.text();
-          console.error("Cloudflare AI error response:", {
-            status: cfResponse.status,
-            statusText: cfResponse.statusText,
-            body: errorText.substring(0, 500),
-          });
-          return NextResponse.json(
-            {
-              error: "Cloudflare AI error",
-              message: errorText || "Unknown error from Cloudflare",
-              status: cfResponse.status,
-            },
-            { status: cfResponse.status }
-          );
-        }
-
-        const jsonResponse = await cfResponse.json();
-        
-        // Extract message from Cloudflare's response
-        let messageContent = "";
-        if (jsonResponse.result?.output && Array.isArray(jsonResponse.result.output)) {
-          const messageObj = jsonResponse.result.output.find(
-            (item: any) => item.type === "message" && item.content && Array.isArray(item.content)
-          );
-          if (messageObj) {
-            const textContent = messageObj.content.find(
-              (item: any) => item.type === "output_text" && item.text
-            );
-            if (textContent?.text) {
-              messageContent = textContent.text;
-            }
-          }
-        }
-
-        if (!messageContent) {
-          console.error("No response text in Cloudflare JSON response. Full response:", JSON.stringify(jsonResponse, null, 2));
-          return NextResponse.json(
-            {
-              error: "No response from AI model",
-              details: jsonResponse,
-            },
-            { status: 500 }
-          );
-        }
-
-        // Format the response for AI SDK v5
-        // AI SDK v5 expects chunks in format: 0:"escaped text"\n
-        // We need to send the message in small chunks to simulate streaming
-        const encoder = new TextEncoder();
-        
-        // Split message into small chunks (simulate streaming)
-        const chunkSize = 10; // Small chunks for better streaming effect
-        const chunks: string[] = [];
-        for (let i = 0; i < messageContent.length; i += chunkSize) {
-          chunks.push(messageContent.slice(i, i + chunkSize));
-        }
-        
-        console.log("Sending stream to client:", {
-          totalChunks: chunks.length,
-          messageLength: messageContent.length,
-          firstChunkPreview: chunks[0]?.substring(0, 50),
-        });
-        
-        const stream = new ReadableStream({
-          start(controller) {
-            try {
-              // Send each chunk with proper formatting
-              chunks.forEach((chunk, index) => {
-                // Escape special characters for JSON string
-                const escapedChunk = chunk
-                  .replace(/\\/g, "\\\\")  // Escape backslashes first
-                  .replace(/"/g, '\\"')    // Escape quotes
-                  .replace(/\n/g, "\\n")   // Escape newlines
-                  .replace(/\r/g, "\\r")   // Escape carriage returns
-                  .replace(/\t/g, "\\t");  // Escape tabs
-                
-                // Format: messageIndex:"content"\n
-                const formattedChunk = `0:"${escapedChunk}"\n`;
-                const encoded = encoder.encode(formattedChunk);
-                controller.enqueue(encoded);
-              });
-              
-              controller.close();
-            } catch (streamError) {
-              console.error("Error in stream start:", streamError);
-              controller.error(streamError);
-            }
-          },
-        });
-
-        return new NextResponse(stream, {
-          headers: {
-            "Content-Type": "text/plain; charset=utf-8",
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "x-vercel-ai-data-stream": "v1",
-            "x-model-used": MODEL,
-          },
-        });
-      } catch (fetchError) {
-        clearTimeout(timeoutId);
-        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-          console.error("Cloudflare AI request timeout");
-          return NextResponse.json(
-            {
-              error: "Request timeout",
-              message: "La solicitud a Cloudflare AI tardó demasiado. Por favor, intenta de nuevo.",
-            },
-            { status: 504 }
-          );
-        }
-        throw fetchError; // Re-throw to be caught by outer catch
-      }
+      // Use toDataStreamResponse for DefaultChatTransport compatibility
+      return (result as any).toDataStreamResponse();
     } catch (error) {
-      console.error("Error calling Cloudflare AI:", error);
+      console.error("Error calling OpenRouter AI:", error);
       const errorMsg = error instanceof Error ? error.message : String(error);
       
       // Check if it's a network error
@@ -306,7 +156,7 @@ export async function POST(req: Request) {
         return NextResponse.json(
           {
             error: "Network error",
-            message: "Error de conexión con Cloudflare AI. Por favor, verifica tu conexión e intenta de nuevo.",
+            message: "Error de conexión con OpenRouter. Por favor, verifica tu conexión e intenta de nuevo.",
           },
           { status: 503 }
         );
@@ -314,7 +164,7 @@ export async function POST(req: Request) {
       
       return NextResponse.json(
         {
-          error: "Error calling Cloudflare AI",
+          error: "Error calling OpenRouter AI",
           message: errorMsg,
         },
         { status: 500 }

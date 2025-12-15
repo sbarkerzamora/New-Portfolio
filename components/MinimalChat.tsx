@@ -743,7 +743,7 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
         } else if (errorMsgLower.includes("timeout") || errorMsgLower.includes("timed out")) {
           errorMessage = "La solicitud tardó demasiado. Por favor, intenta de nuevo.";
         } else if (errorMsgLower.includes("insufficient credits") || errorMsgLower.includes("402")) {
-          errorMessage = "Error: El modelo requiere créditos. Por favor, verifica la configuración de OpenRouter.";
+          errorMessage = "Error: El modelo requiere créditos. Por favor, verifica la configuración de OpenRouter o tu API key.";
         } else if (errorMsgLower.includes("no valid messages") || errorMsgLower.includes("400")) {
           errorMessage = "Error al procesar el mensaje. Por favor, intenta de nuevo.";
         } else {
