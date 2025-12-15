@@ -133,44 +133,54 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Message with projects carousel or technologies */
-.messageWithContent {
-  max-width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
+/* Message content formatting */
 .messageContent {
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-/* Projects carousel inside message */
-.projectsInMessage {
+/* Component cards - separate from messages */
+.componentCard {
   width: 100%;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  animation: fadeIn 0.3s ease-in;
+  margin-top: 0.25rem;
 }
 
-.projectsInMessage .carousel {
-  padding: 0;
+.componentLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.375rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.projectsInMessage .projectCard {
+.calendarWrapper {
+  min-height: 400px;
+  background: hsl(var(--card));
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Legacy styles for backwards compatibility */
+.messageWithContent {
   max-width: 100%;
 }
 
-/* Technologies marquee inside message */
+.projectsInMessage,
 .technologiesInMessage {
   width: 100%;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Calendar inside message */
+/* Calendar inside message (legacy) */
 .calendarInMessage {
   width: 100%;
   margin-top: 1rem;
@@ -467,12 +477,27 @@
   }
 
   .messageBubble {
-    max-width: 85%;
+    max-width: 90%;
     padding: 0.625rem 0.875rem;
   }
 
   .messageContent {
     font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  .componentCard {
+    padding: 0.625rem;
+    border-radius: 0.625rem;
+  }
+
+  .componentLabel {
+    font-size: 0.625rem;
+    margin-bottom: 0.375rem;
+  }
+
+  .calendarWrapper {
+    min-height: 350px;
   }
 
   .welcomeBanner {

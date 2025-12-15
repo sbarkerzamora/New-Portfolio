@@ -15,7 +15,7 @@
  * @module components/MinimalChat
  */
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback, Fragment, ReactNode } from "react";
 import { Send, X, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -825,39 +825,58 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
         ) : (
           <div ref={messagesRef} className={styles.messagesList}>
             {displayMessages.map((message) => (
-              <div
-                key={message.id}
-                data-message
-                className={cn(
-                  styles.messageBubble,
-                  message.role === "user" ? styles.userMessage : styles.assistantMessage,
-                  (message.showProjects || message.showTechnologies || message.showCalendar || (showCalendar && message.role === "assistant" && message.id === aiMessages[aiMessages.length - 1]?.id)) && styles.messageWithContent
-                )}
-              >
-                <span className={styles.messageContent}>{message.content}</span>
+              <Fragment key={message.id}>
+                {/* Main message bubble */}
+                <div
+                  data-message
+                  className={cn(
+                    styles.messageBubble,
+                    message.role === "user" ? styles.userMessage : styles.assistantMessage
+                  )}
+                >
+                  <div className={styles.messageContent}>
+                    {message.content.split('\n').map((line, i, arr) => (
+                      <Fragment key={i}>
+                        {line}
+                        {i < arr.length - 1 && <br />}
+                      </Fragment>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Projects carousel - separate card */}
                 {message.showProjects && projects.length > 0 && (
-                  <div className={styles.projectsInMessage}>
+                  <div className={styles.componentCard} data-message>
+                    <div className={styles.componentLabel}>📁 Proyectos destacados</div>
                     <ProjectsCarousel projects={projects} />
                   </div>
                 )}
+                
+                {/* Technologies marquee - separate card */}
                 {message.showTechnologies && technologies.length > 0 && (
-                  <div className={styles.technologiesInMessage}>
+                  <div className={styles.componentCard} data-message>
+                    <div className={styles.componentLabel}>🛠️ Stack tecnológico</div>
                     <TechnologiesMarquee technologies={technologies} />
                   </div>
                 )}
+                
+                {/* Calendar - separate card */}
                 {(message.showCalendar || (showCalendar && message.role === "assistant" && message.id === aiMessages[aiMessages.length - 1]?.id)) && (
-                  <div className={styles.calendarInMessage}>
-                    {calLoaded && (
-                      <Cal
-                        namespace="30-min-meeting"
-                        calLink="sbarker/30-min-meeting"
-                        style={{ width: "100%", height: "100%", overflow: "scroll" }}
-                        config={{ layout: "month_view" }}
-                      />
-                    )}
+                  <div className={styles.componentCard} data-message>
+                    <div className={styles.componentLabel}>📅 Reservar una cita</div>
+                    <div className={styles.calendarWrapper}>
+                      {calLoaded && (
+                        <Cal
+                          namespace="30-min-meeting"
+                          calLink="sbarker/30-min-meeting"
+                          style={{ width: "100%", height: "100%", overflow: "scroll" }}
+                          config={{ layout: "month_view" }}
+                        />
+                      )}
+                    </div>
                   </div>
                 )}
-              </div>
+              </Fragment>
             ))}
             <div ref={messagesEndRef} />
             
