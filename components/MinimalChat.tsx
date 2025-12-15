@@ -35,6 +35,113 @@ import gsap from "gsap";
 // Maximum number of messages to display
 const MAX_MESSAGES = 10;
 
+/**
+ * Parse basic markdown to React elements
+ * Supports: **bold**, *italic*, - lists, numbered lists
+ */
+function parseMarkdown(text: string): ReactNode {
+  const lines = text.split('\n');
+  const elements: ReactNode[] = [];
+  let listItems: ReactNode[] = [];
+  let listType: 'ul' | 'ol' | null = null;
+  
+  const parseInline = (line: string): ReactNode => {
+    // Parse bold and italic
+    const parts: ReactNode[] = [];
+    let remaining = line;
+    let key = 0;
+    
+    // Pattern for **bold** and *italic*
+    const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g;
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = regex.exec(remaining)) !== null) {
+      // Add text before match
+      if (match.index > lastIndex) {
+        parts.push(remaining.slice(lastIndex, match.index));
+      }
+      
+      // Add formatted text
+      if (match[2]) {
+        // Bold
+        parts.push(<strong key={key++} className="font-semibold text-white">{match[2]}</strong>);
+      } else if (match[3]) {
+        // Italic
+        parts.push(<em key={key++}>{match[3]}</em>);
+      }
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining text
+    if (lastIndex < remaining.length) {
+      parts.push(remaining.slice(lastIndex));
+    }
+    
+    return parts.length > 0 ? parts : line;
+  };
+  
+  const flushList = () => {
+    if (listItems.length > 0 && listType) {
+      const ListTag = listType;
+      elements.push(
+        <ListTag key={elements.length} className={listType === 'ul' ? 'list-disc' : 'list-decimal'} style={{ paddingLeft: '1.25rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+          {listItems}
+        </ListTag>
+      );
+      listItems = [];
+      listType = null;
+    }
+  };
+  
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+    
+    // Check for unordered list
+    if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ')) {
+      if (listType !== 'ul') {
+        flushList();
+        listType = 'ul';
+      }
+      listItems.push(
+        <li key={index} style={{ marginBottom: '0.25rem' }}>{parseInline(trimmedLine.slice(2))}</li>
+      );
+      return;
+    }
+    
+    // Check for ordered list
+    const orderedMatch = trimmedLine.match(/^(\d+)\.\s+(.+)/);
+    if (orderedMatch) {
+      if (listType !== 'ol') {
+        flushList();
+        listType = 'ol';
+      }
+      listItems.push(
+        <li key={index} style={{ marginBottom: '0.25rem' }}>{parseInline(orderedMatch[2])}</li>
+      );
+      return;
+    }
+    
+    // Regular line - flush any list first
+    flushList();
+    
+    if (trimmedLine === '') {
+      // Empty line
+      elements.push(<div key={index} style={{ height: '0.5rem' }} />);
+    } else {
+      elements.push(
+        <p key={index} style={{ marginBottom: '0.5rem' }}>{parseInline(line)}</p>
+      );
+    }
+  });
+  
+  // Flush remaining list
+  flushList();
+  
+  return <>{elements}</>;
+}
+
 // LocalStorage key for welcome message
 const WELCOME_MESSAGE_KEY = "minimal-chat-welcome-dismissed";
 
@@ -494,25 +601,44 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
         }
       }
       
-      // Determine what to show based on both LLM response and user query
-      const contentLower = content.toLowerCase();
-      const hasCarouselPhrase = contentLower.includes("carrusel") || (contentLower.includes("aquí tienes") && (contentLower.includes("proyecto") || contentLower.includes("portafolio")));
-      const hasMarqueePhrase = contentLower.includes("marquee") || (contentLower.includes("aquí tienes") && (contentLower.includes("tecnolog") || contentLower.includes("stack")));
+      // Determine what to show based on user query - only show when SPECIFICALLY requested
+      // User must explicitly ask about projects to show carousel
+      const userAskedProjects = userQuery.includes("proyecto") || 
+                                userQuery.includes("portafolio") || 
+                                userQuery.includes("qué has hecho") ||
+                                userQuery.includes("trabajos");
+      // User must explicitly ask about technologies/stack to show marquee
+      const userAskedTech = (userQuery.includes("tecnolog") && !userQuery.includes("sobre")) || 
+                            userQuery.includes("stack") || 
+                            userQuery.includes("qué usas") ||
+                            userQuery.includes("herramientas que usas");
+      // User must ask about contact to show calendar
+      const userAskedContact = userQuery.includes("contacto") || 
+                               userQuery.includes("contact") || 
+                               userQuery.includes("cita") || 
+                               userQuery.includes("reservar") ||
+                               userQuery.includes("reunión");
       
-      // If user asked about projects, show projects carousel
-      const userAskedProjects = userQuery.includes("proyecto") || userQuery.includes("portafolio");
-      // If user asked about technologies, show technologies marquee
-      const userAskedTech = userQuery.includes("tecnolog") || userQuery.includes("stack") || userQuery.includes("herramienta");
-      // If user asked about contact, show calendar
-      const userAskedContact = userQuery.includes("contacto") || userQuery.includes("contact") || userQuery.includes("cita") || userQuery.includes("reservar");
+      // Only show one component at a time, and only when explicitly asked
+      const showProjects = msg.role === "assistant" && 
+                          msg.id !== "initial-1" && 
+                          userAskedProjects && 
+                          !userAskedTech && 
+                          !userAskedContact;
+      
+      const showTechnologies = msg.role === "assistant" && 
+                               msg.id !== "initial-1" && 
+                               userAskedTech && 
+                               !userAskedProjects && 
+                               !userAskedContact;
       
       return {
         id: msg.id,
         role: msg.role as "user" | "assistant",
         content: content,
         timestamp: (msg as any).createdAt?.getTime() ?? Date.now(),
-        showProjects: msg.role === "assistant" && msg.id !== "initial-1" && (hasCarouselPhrase || (userAskedProjects && !userAskedTech && !userAskedContact)),
-        showTechnologies: msg.role === "assistant" && msg.id !== "initial-1" && (hasMarqueePhrase || (userAskedTech && !userAskedProjects && !userAskedContact)),
+        showProjects,
+        showTechnologies,
         showCalendar: msg.role === "assistant" && msg.id !== "initial-1" && userAskedContact,
       };
     });
@@ -826,21 +952,27 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
           <div ref={messagesRef} className={styles.messagesList}>
             {displayMessages.map((message) => (
               <Fragment key={message.id}>
-                {/* Main message bubble */}
+                {/* Message row - ChatGPT style */}
                 <div
                   data-message
                   className={cn(
-                    styles.messageBubble,
-                    message.role === "user" ? styles.userMessage : styles.assistantMessage
+                    styles.messageRow,
+                    message.role === "user" ? styles.userMessageRow : styles.assistantMessageRow
                   )}
                 >
-                  <div className={styles.messageContent}>
-                    {message.content.split('\n').map((line, i, arr) => (
-                      <Fragment key={i}>
-                        {line}
-                        {i < arr.length - 1 && <br />}
-                      </Fragment>
-                    ))}
+                  {message.role === "assistant" && (
+                    <div className={styles.messageAvatar}>
+                      <span>🤖</span>
+                    </div>
+                  )}
+                  <div className={cn(
+                    styles.messageContent,
+                    message.role === "user" ? styles.userContent : styles.assistantContent
+                  )}>
+                    {message.role === "user" 
+                      ? message.content 
+                      : parseMarkdown(message.content)
+                    }
                   </div>
                 </div>
                 
