@@ -145,7 +145,7 @@ export async function POST(req: Request) {
         temperature: 0.7,
       });
 
-      // Use toTextStreamResponse which is the correct method for AI SDK v5
+      // Use toTextStreamResponse - this is the correct method for AI SDK v5
       // DefaultChatTransport can handle text stream responses
       const response = result.toTextStreamResponse();
       
@@ -154,6 +154,7 @@ export async function POST(req: Request) {
       headers.set('x-model-used', MODEL);
       headers.set('Cache-Control', 'no-cache');
       headers.set('Connection', 'keep-alive');
+      headers.set('Content-Type', 'text/plain; charset=utf-8');
       
       return new Response(response.body, {
         status: response.status,
