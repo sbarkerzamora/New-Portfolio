@@ -45,6 +45,11 @@ function HomeContent() {
   const headerRef = useRef<HTMLElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
 
+  // Reset scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Entrance animations for avatar and footer using GSAP
   useEffect(() => {
     const ctx = gsap.context(() => {

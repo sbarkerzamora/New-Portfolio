@@ -488,7 +488,7 @@
     background: transparent;
     backdrop-filter: none;
     z-index: 50;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .connectionIndicator {

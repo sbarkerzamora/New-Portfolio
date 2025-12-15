@@ -672,18 +672,28 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
   };
 
   /**
-   * Scrolls to the bottom of the messages container
+   * Scrolls to the bottom of the messages container (within the chat only)
    */
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToBottom = useCallback(() => {
+    // Only scroll within the messages container, not the whole page
+    if (messagesRef.current) {
+      const container = messagesRef.current.parentElement;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }
+  }, []);
 
   /**
-   * Updates messages when new ones are added
+   * Updates messages when new ones are added - scroll only within chat
    */
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Small delay to ensure DOM is updated
+    const timeoutId = setTimeout(() => {
+      scrollToBottom();
+    }, 50);
+    return () => clearTimeout(timeoutId);
+  }, [messages, scrollToBottom]);
 
 
   /**
