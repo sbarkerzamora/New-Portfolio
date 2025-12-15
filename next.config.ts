@@ -5,8 +5,6 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // External packages for server components (for @react-pdf/renderer)
   serverExternalPackages: ["@react-pdf/renderer"],
-  // Optimizaciones para el build
-  swcMinify: true,
   // Deshabilitar source maps en producción para acelerar el build
   productionBrowserSourceMaps: false,
   // Optimizar imágenes
