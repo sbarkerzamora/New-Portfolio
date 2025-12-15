@@ -145,11 +145,31 @@ export async function POST(req: Request) {
         temperature: 0.7,
       });
 
-      // Use toDataStreamResponse for DefaultChatTransport compatibility
-      return (result as any).toDataStreamResponse();
+      // Use toTextStreamResponse which is the correct method for AI SDK v5
+      // DefaultChatTransport can handle text stream responses
+      const response = result.toTextStreamResponse();
+      
+      // Add headers for proper streaming
+      const headers = new Headers(response.headers);
+      headers.set('x-model-used', MODEL);
+      headers.set('Cache-Control', 'no-cache');
+      headers.set('Connection', 'keep-alive');
+      
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: headers,
+      });
     } catch (error) {
       console.error("Error calling OpenRouter AI:", error);
       const errorMsg = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      
+      console.error("Error details:", {
+        message: errorMsg,
+        stack: errorStack,
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
+      });
       
       // Check if it's a network error
       if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ETIMEDOUT'))) {
@@ -162,10 +182,22 @@ export async function POST(req: Request) {
         );
       }
       
+      // Check for API key or authentication errors
+      if (error instanceof Error && (error.message.includes('401') || error.message.includes('Unauthorized') || error.message.includes('API key'))) {
+        return NextResponse.json(
+          {
+            error: "Authentication error",
+            message: "Error de autenticación con OpenRouter. Por favor, verifica tu API key.",
+          },
+          { status: 401 }
+        );
+      }
+      
       return NextResponse.json(
         {
           error: "Error calling OpenRouter AI",
           message: errorMsg,
+          details: process.env.NODE_ENV === "development" ? errorStack : undefined,
         },
         { status: 500 }
       );
