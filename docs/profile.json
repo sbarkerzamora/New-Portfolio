@@ -194,19 +194,29 @@
         "titulo": "Desarrollo Full-Stack",
         "descripcion": "Aplicaciones web modernas y escalables con Next.js, TypeScript y Supabase — desde MVP hasta producto maduro.",
         "tags": ["NEXT.JS", "TYPESCRIPT", "SUPABASE", "REACT", "APIs RESTful", "DOCKER"],
-        "imagen": "/services/fullstack-placeholder.jpg"
+        "imagenes": [
+          "/assets/que-hago/full-stack/156shots_so.webp",
+          "/assets/que-hago/full-stack/615shots_so.webp",
+          "/assets/que-hago/full-stack/671shots_so.webp"
+        ]
       },
       {
         "titulo": "WordPress & WooCommerce",
         "descripcion": "Sitios rápidos, optimizados para SEO y fáciles de administrar. Tiendas online listas para vender.",
         "tags": ["WORDPRESS", "WOOCOMMERCE", "SEO", "PERFORMANCE", "CMS", "E-COMMERCE"],
-        "imagen": "/services/wordpress-placeholder.jpg"
+        "imagenes": [
+          "/assets/que-hago/wordpress/468shots_so.webp",
+          "/assets/que-hago/wordpress/525shots_so.webp",
+          "/assets/que-hago/wordpress/968shots_so.webp"
+        ]
       },
       {
         "titulo": "Integraciones & Pagos",
         "descripcion": "Conecta tu negocio con Stripe, PayPal y APIs externas. Automatizaciones que ahorran tiempo y dinero.",
         "tags": ["STRIPE API", "PAYPAL", "WEBHOOKS", "AUTOMATIZACIÓN", "APIs", "ZAPIER"],
-        "imagen": "/services/integrations-placeholder.jpg"
+        "imagenes": [
+          "/assets/que-hago/automations/542shots_so.webp"
+        ]
       }
     ]
   }

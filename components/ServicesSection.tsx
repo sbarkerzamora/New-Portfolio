@@ -10,22 +10,127 @@
  * - Eyebrow label with slashes
  * - Large title "¿Qué hago?"
  * - Description paragraph aligned right
- * - 3 service cards with icon, title, description, tags, and placeholder image
+ * - 3 service cards with icon, title, description, tags, and image carousel
  * - GSAP animations on scroll into view
  * - Respects prefers-reduced-motion
  * 
  * @module components/ServicesSection
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Code2, Globe, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
+import Image from "next/image";
 import styles from "./ServicesSection.module.css";
 import profileData from "@/docs/profile.json";
 
 // Icons mapping for each service
 const serviceIcons = [Code2, Globe, Zap];
+
+// Auto-rotate interval in milliseconds
+const CAROUSEL_INTERVAL = 4000;
+
+/**
+ * ImageCarousel Component
+ * A simple image carousel with dots indicator and auto-rotation
+ */
+function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-rotate images
+  useEffect(() => {
+    if (images.length <= 1) return;
+
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, CAROUSEL_INTERVAL);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [images.length]);
+
+  // Handle dot click
+  const handleDotClick = useCallback((index: number) => {
+    setCurrentIndex(index);
+    // Reset the interval when user manually changes slide
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    if (images.length > 1) {
+      intervalRef.current = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }, CAROUSEL_INTERVAL);
+    }
+  }, [images.length]);
+
+  if (images.length === 0) {
+    return (
+      <div className={styles.imagePlaceholder}>
+        <div className={styles.dots}>
+          <span className={styles.dot} />
+          <span className={styles.dot} />
+          <span className={styles.dot} />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.carousel}>
+      {/* Images */}
+      <div className={styles.carouselTrack}>
+        {images.map((src, index) => (
+          <div
+            key={src}
+            className={cn(
+              styles.carouselSlide,
+              index === currentIndex && styles.carouselSlideActive
+            )}
+          >
+            <Image
+              src={src}
+              alt={`${alt} - imagen ${index + 1}`}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className={styles.carouselImage}
+              priority={index === 0}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Dots indicator */}
+      {images.length > 1 && (
+        <div className={styles.dots}>
+          {images.map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={() => handleDotClick(index)}
+              className={cn(
+                styles.dot,
+                index === currentIndex && styles.dotActive
+              )}
+              aria-label={`Ver imagen ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Single dot for single image */}
+      {images.length === 1 && (
+        <div className={styles.dots}>
+          <span className={cn(styles.dot, styles.dotActive)} />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ServicesSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -164,6 +269,7 @@ export default function ServicesSection() {
         <div className={styles.grid}>
           {servicios.items.map((item, index) => {
             const IconComponent = serviceIcons[index] || Code2;
+            const images = (item as any).imagenes || [];
             
             return (
               <div
@@ -195,16 +301,9 @@ export default function ServicesSection() {
                   </div>
                 </div>
 
-                {/* Image Placeholder */}
+                {/* Image Carousel */}
                 <div className={styles.imageContainer}>
-                  <div className={styles.imagePlaceholder}>
-                    {/* Dots indicator */}
-                    <div className={styles.dots}>
-                      <span className={styles.dot} />
-                      <span className={styles.dot} />
-                      <span className={styles.dot} />
-                    </div>
-                  </div>
+                  <ImageCarousel images={images} alt={item.titulo} />
                 </div>
               </div>
             );
