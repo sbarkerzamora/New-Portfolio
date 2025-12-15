@@ -843,6 +843,9 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     }
   }, [aiError]);
 
+  // Ref to track if we've already triggered contact message
+  const contactMessageSentRef = useRef(false);
+
   // Detect contact-related messages and show calendar in chat
   useEffect(() => {
     const lastMessage = aiMessages[aiMessages.length - 1];
@@ -861,29 +864,40 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
         ) {
           // Show calendar in chat
           setShowCalendar(true);
-          // Notify parent if callback provided
-          if (onContactRequest) {
-            onContactRequest();
-          }
         }
       }
     }
-  }, [aiMessages, setShowCalendar, onContactRequest]);
+  }, [aiMessages, setShowCalendar]);
 
-  // When calendar is shown externally (e.g., from footer), send a contact message
+  // When calendar is shown externally (e.g., from footer), send a contact message ONCE
   useEffect(() => {
-    if (showCalendar) {
-      // When calendar is shown externally (e.g., from footer), send a message
-      const contactPrompt = "¿Cómo puedo contactarte?";
+    if (showCalendar && !contactMessageSentRef.current) {
+      // Check if there's already a contact-related message
       const hasContactMessage = aiMessages.some(msg => {
         const role: string = msg.role;
-        return role === "user" && getMessageText(msg).toLowerCase().includes("contacto");
+        const text = getMessageText(msg).toLowerCase();
+        return role === "user" && (
+          text.includes("contacto") ||
+          text.includes("contact") ||
+          text.includes("cita") ||
+          text.includes("reservar")
+        );
       });
       
       if (!hasContactMessage) {
+        // Mark as sent before sending to prevent loops
+        contactMessageSentRef.current = true;
         // Send message directly
-        sendMessage({ text: contactPrompt });
+        sendMessage({ text: "¿Cómo puedo contactarte?" });
+      } else {
+        // Already has a contact message, just mark as sent
+        contactMessageSentRef.current = true;
       }
+    }
+    
+    // Reset ref when calendar is hidden
+    if (!showCalendar) {
+      contactMessageSentRef.current = false;
     }
   }, [showCalendar, aiMessages, sendMessage]);
 
