@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { TextStreamChatTransport, type UIMessage } from "ai";
 import { useCalModal } from "@/contexts/CalModalContext";
 import Cal, { getCalApi } from "@calcom/embed-react";
 import styles from "./MinimalChat.module.css";
@@ -351,9 +351,9 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
   // Local state for input (AI SDK v5 doesn't provide input state)
   const [input, setInput] = useState("");
 
-  // Create HTTP transport for useChat using DefaultChatTransport
+  // Create HTTP transport for useChat using TextStreamChatTransport (for text/plain responses)
   const transport = useMemo(() => {
-    return new DefaultChatTransport<UIMessage>({
+    return new TextStreamChatTransport({
       api: "/api/chat",
       headers: async () => {
         return {

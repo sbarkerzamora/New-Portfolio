@@ -117,9 +117,11 @@ export async function POST(req: Request) {
         messages: cleanedMessages,
       });
 
-      // Return the streaming response
+      // Consume the stream and merge into text stream response
+      // This ensures proper streaming to the useChat hook
       return result.toTextStreamResponse({
         headers: {
+          "Content-Type": "text/plain; charset=utf-8",
           "x-model-used": MODEL,
         },
       });
