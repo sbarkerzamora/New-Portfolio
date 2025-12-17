@@ -14,6 +14,7 @@ export default function AboutSection() {
     [experiencia_laboral]
   );
 
+  const [enableBlast, setEnableBlast] = useState(false);
   const sectionRef = useRef<HTMLElement | null>(null);
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -40,6 +41,17 @@ export default function AboutSection() {
     return () => observer.disconnect();
   }, []);
 
+  // Toggle heavy background for mobile / reduced motion
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isSmall = window.innerWidth < 900;
+    if (prefersReducedMotion || isSmall) {
+      setEnableBlast(false);
+      return;
+    }
+    setEnableBlast(true);
+  }, []);
+
   return (
     <section
       ref={sectionRef}
@@ -47,27 +59,30 @@ export default function AboutSection() {
       aria-labelledby="about-title"
       id="acerca-de"
     >
-      <div className={styles.pixelBlast}>
-        <PixelBlast
-          variant="circle"
-          pixelSize={6}
-          color="#B19EEF"
-          patternScale={3}
-          patternDensity={1.2}
-          pixelSizeJitter={0.5}
-          enableRipples
-          rippleSpeed={0.4}
-          rippleThickness={0.12}
-          rippleIntensityScale={1.5}
-          liquid
-          liquidStrength={0.12}
-          liquidRadius={1.2}
-          liquidWobbleSpeed={5}
-          speed={0.6}
-          edgeFade={0.25}
-          transparent
-        />
-      </div>
+      {enableBlast && (
+        <div className={styles.pixelBlast}>
+          <PixelBlast
+            variant="circle"
+            pixelSize={7}
+            color="#B19EEF"
+            patternScale={2.6}
+            patternDensity={1}
+            pixelSizeJitter={0.4}
+            enableRipples
+            rippleSpeed={0.35}
+            rippleThickness={0.12}
+            rippleIntensityScale={1.3}
+            liquid
+            liquidStrength={0.1}
+            liquidRadius={1.1}
+            liquidWobbleSpeed={4.2}
+            speed={0.5}
+            edgeFade={0.3}
+            transparent
+            autoPauseOffscreen
+          />
+        </div>
+      )}
       <div className={styles.backgroundGlow} aria-hidden="true" />
 
       <div className={styles.container}>
