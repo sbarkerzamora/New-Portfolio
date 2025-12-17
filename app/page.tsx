@@ -23,6 +23,7 @@ import MinimalChat from "@/components/MinimalChat";
 import DecryptedText from "@/components/DecryptedText";
 import InfoModal from "@/components/InfoModal";
 import ServicesSection from "@/components/ServicesSection";
+import AboutSection from "@/components/AboutSection";
 import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
@@ -133,69 +134,76 @@ function HomeContent() {
       {/* Hero Section - First viewport with chat */}
       <div className={styles.heroSection}>
         {/* Animated header */}
-        <header ref={headerRef} className={cn(styles.header, "animate-in fade-in-0 duration-500")}>
-          {/* Left section - Avatar */}
-          <div className={styles.headerLeft}>
-            <div ref={avatarRef} className={styles.headerAvatarWrap} aria-label="Avatar">
-              <Image
-                src="/assets/images/avatar.png"
-                alt="Stephan Barker"
-                width={36}
-                height={36}
-                className={styles.headerAvatar}
-                priority
-              />
+        <div className={styles.contentMax}>
+          <header ref={headerRef} className={cn(styles.header, "animate-in fade-in-0 duration-500")}>
+            {/* Left section - Avatar */}
+            <div className={styles.headerLeft}>
+              <div ref={avatarRef} className={styles.headerAvatarWrap} aria-label="Avatar">
+                <Image
+                  src="/assets/images/avatar.png"
+                  alt="Stephan Barker"
+                  width={36}
+                  height={36}
+                  className={styles.headerAvatar}
+                  priority
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Center section - Title */}
-          <div className={styles.headerCenter}>
-            <span className={styles.headerTitle}>Stephan Barker</span>
-          </div>
+            {/* Center section - Title */}
+            <div className={styles.headerCenter}>
+              <span className={styles.headerTitle}>Stephan Barker</span>
+            </div>
 
-          {/* Right section - Connection status + Info button */}
-          <div className={styles.headerRight}>
-            <span
-              className={cn(
-                styles.headerStatusDot,
-                connectionStatus === "connected"
-                  ? styles.headerStatusConnected
-                  : connectionStatus === "connecting"
-                  ? styles.headerStatusConnecting
-                  : connectionStatus === "error"
-                  ? styles.headerStatusError
-                  : styles.headerStatusIdle
-              )}
-              title={connectionStatus === "connected" ? "Conectado" : connectionStatus === "connecting" ? "Conectando" : connectionStatus === "error" ? "Error" : "En espera"}
-              aria-label={`Estado: ${connectionStatus}`}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Información"
-              onClick={() => setIsInfoOpen(true)}
-              className={styles.headerInfoButton}
-            >
-              <Info className="h-5 w-5" />
-            </Button>
-          </div>
-        </header>
+            {/* Right section - Connection status + Info button */}
+            <div className={styles.headerRight}>
+              <span
+                className={cn(
+                  styles.headerStatusDot,
+                  connectionStatus === "connected"
+                    ? styles.headerStatusConnected
+                    : connectionStatus === "connecting"
+                    ? styles.headerStatusConnecting
+                    : connectionStatus === "error"
+                    ? styles.headerStatusError
+                    : styles.headerStatusIdle
+                )}
+                title={connectionStatus === "connected" ? "Conectado" : connectionStatus === "connecting" ? "Conectando" : connectionStatus === "error" ? "Error" : "En espera"}
+                aria-label={`Estado: ${connectionStatus}`}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Información"
+                onClick={() => setIsInfoOpen(true)}
+                className={styles.headerInfoButton}
+              >
+                <Info className="h-5 w-5" />
+              </Button>
+            </div>
+          </header>
+        </div>
 
         {/* Main content - centered chat */}
         <main className={styles.mainContent}>
-          <MinimalChat 
-            onContactRequest={() => openCalendar()} 
-            onConnectionStatusChange={(status, model) => {
-              setConnectionStatus(status);
-              if (model) setCurrentModel(model);
-            }}
-          />
+          <div className={styles.contentMax}>
+            <MinimalChat 
+              onContactRequest={() => openCalendar()} 
+              onConnectionStatusChange={(status, model) => {
+                setConnectionStatus(status);
+                if (model) setCurrentModel(model);
+              }}
+            />
+          </div>
         </main>
 
       </div>
 
       {/* Services Section - Second viewport */}
       <ServicesSection />
+
+      {/* About Section */}
+      <AboutSection />
 
       {/* Fixed footer - visible on all sections */}
       <footer ref={footerRef} className={styles.footer}>
