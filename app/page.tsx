@@ -24,6 +24,7 @@ import DecryptedText from "@/components/DecryptedText";
 import InfoModal from "@/components/InfoModal";
 import ServicesSection from "@/components/ServicesSection";
 import AboutSection from "@/components/AboutSection";
+import CallToAction from "@/components/CallToAction";
 import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
@@ -132,7 +133,7 @@ function HomeContent() {
       </div>
 
       {/* Hero Section - First viewport with chat */}
-      <div className={styles.heroSection}>
+      <div className={styles.heroSection} id="hero">
         {/* Animated header */}
         <div className={styles.contentMax}>
           <header ref={headerRef} className={cn(styles.header, "animate-in fade-in-0 duration-500")}>
@@ -204,6 +205,9 @@ function HomeContent() {
 
       {/* About Section */}
       <AboutSection />
+
+      {/* CTA Section */}
+      <CallToAction />
 
       {/* Fixed footer - visible on all sections */}
       <footer ref={footerRef} className={styles.footer}>
