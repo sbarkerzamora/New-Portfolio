@@ -1,12 +1,92 @@
 import { NextResponse } from "next/server";
 import { loadProfile } from "@/lib/profile";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
 
-// Modelo a usar en OpenRouter
-const MODEL = "openai/gpt-4o-mini";
-
 export const runtime = "nodejs";
+
+/**
+ * LLM Provider Configuration
+ * 
+ * This project supports multiple LLM providers. Configure your provider using environment variables:
+ * 
+ * 1. OpenRouter (default): Set LLM_PROVIDER=openrouter and OPENROUTER_API_KEY
+ *    - Supports multiple models from different providers
+ *    - Get API key: https://openrouter.ai/keys
+ *    - Models: https://openrouter.ai/models
+ * 
+ * 2. OpenAI: Set LLM_PROVIDER=openai and OPENAI_API_KEY
+ *    - Direct OpenAI API access
+ *    - Get API key: https://platform.openai.com/api-keys
+ * 
+ * 3. Custom: Implement your own provider in the getLLMModel function below
+ * 
+ * The model can be configured via environment variables:
+ * - OPENROUTER_MODEL (for OpenRouter)
+ * - OPENAI_MODEL (for OpenAI)
+ * 
+ * Default model: openai/gpt-4o-mini (OpenRouter) or gpt-4o-mini (OpenAI)
+ */
+
+/**
+ * Gets the configured LLM model based on environment variables
+ * @returns A configured model instance from the selected provider
+ * @throws Error if provider is not configured correctly
+ */
+function getLLMModel() {
+  const provider = (process.env.LLM_PROVIDER || "openrouter").toLowerCase();
+
+  switch (provider) {
+    case "openrouter": {
+      const apiKey = process.env.OPENROUTER_API_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "OpenRouter API key not set. Please set OPENROUTER_API_KEY in your environment variables."
+        );
+      }
+
+      const model = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
+      const openrouter = createOpenRouter({ apiKey });
+      
+      console.log("Using OpenRouter provider:", { model, hasApiKey: !!apiKey });
+      return openrouter(model);
+    }
+
+    case "openai": {
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "OpenAI API key not set. Please set OPENAI_API_KEY in your environment variables."
+        );
+      }
+
+      const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+      const openai = createOpenAI({ apiKey });
+      
+      console.log("Using OpenAI provider:", { model, hasApiKey: !!apiKey });
+      return openai(model);
+    }
+
+    // Add more providers here as needed
+    // Example for Anthropic:
+    // case "anthropic": {
+    //   const apiKey = process.env.ANTHROPIC_API_KEY;
+    //   if (!apiKey) {
+    //     throw new Error("Anthropic API key not set. Please set ANTHROPIC_API_KEY.");
+    //   }
+    //   const model = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022";
+    //   const anthropic = createAnthropic({ apiKey });
+    //   return anthropic(model);
+    // }
+
+    default:
+      throw new Error(
+        `Unsupported LLM provider: ${provider}. Supported providers: openrouter, openai. ` +
+        `Set LLM_PROVIDER environment variable to one of these values.`
+      );
+  }
+}
 
 // Helper function to extract text content from UIMessage parts (AI SDK v5 format)
 function extractTextFromMessage(msg: any): string {
@@ -41,15 +121,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-      console.error("OpenRouter API key not set (OPENROUTER_API_KEY)");
-      return NextResponse.json(
-        { error: "OpenRouter API key not set" },
-        { status: 500 },
-      );
-    }
-
     // Load profile
     let profile;
     try {
@@ -64,11 +135,31 @@ export async function POST(req: Request) {
 
     const systemPrompt = buildSystemPrompt(profile);
 
-    // Log API key status (without exposing the key)
-    console.log("OpenRouter AI configuration:", {
-      hasApiKey: !!apiKey,
-      model: MODEL,
-    });
+    // Get configured LLM model
+    let llmModel;
+    let modelName: string;
+    try {
+      llmModel = getLLMModel();
+      // Extract model name for logging (this is provider-specific)
+      const provider = (process.env.LLM_PROVIDER || "openrouter").toLowerCase();
+      if (provider === "openrouter") {
+        modelName = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
+      } else if (provider === "openai") {
+        modelName = process.env.OPENAI_MODEL || "gpt-4o-mini";
+      } else {
+        modelName = "unknown";
+      }
+    } catch (modelError) {
+      console.error("Error configuring LLM model:", modelError);
+      const errorMessage = modelError instanceof Error ? modelError.message : String(modelError);
+      return NextResponse.json(
+        { 
+          error: "LLM configuration error",
+          message: errorMessage,
+        },
+        { status: 500 },
+      );
+    }
 
     // Filter out system messages from the messages array (they should only be in system prompt)
     const conversationMessages = messages.filter(
@@ -105,14 +196,10 @@ export async function POST(req: Request) {
     }
 
     try {
-      // Create OpenRouter client
-      const openrouter = createOpenRouter({
-        apiKey,
-      });
-
-      // Use streamText from AI SDK
+      // Use streamText from AI SDK with the configured model
+      // Note: Type assertion needed due to different model types from different providers
       const result = streamText({
-        model: openrouter(MODEL),
+        model: llmModel as any,
         system: systemPrompt,
         messages: cleanedMessages,
       });
@@ -122,18 +209,20 @@ export async function POST(req: Request) {
       return result.toTextStreamResponse({
         headers: {
           "Content-Type": "text/plain; charset=utf-8",
-          "x-model-used": MODEL,
+          "x-model-used": modelName,
+          "x-provider": process.env.LLM_PROVIDER || "openrouter",
         },
       });
     } catch (error) {
-      console.error("Error calling OpenRouter AI:", error);
+      console.error("Error calling LLM:", error);
       const errorMsg = error instanceof Error ? error.message : String(error);
+      const provider = process.env.LLM_PROVIDER || "openrouter";
       
       if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ETIMEDOUT'))) {
         return NextResponse.json(
           {
             error: "Network error",
-            message: "Error de conexión con OpenRouter. Por favor, verifica tu conexión e intenta de nuevo.",
+            message: `Error de conexión con ${provider}. Por favor, verifica tu conexión e intenta de nuevo.`,
           },
           { status: 503 }
         );
@@ -141,7 +230,7 @@ export async function POST(req: Request) {
       
       return NextResponse.json(
         {
-          error: "Error calling OpenRouter AI",
+          error: `Error calling ${provider} AI`,
           message: errorMsg,
         },
         { status: 500 }

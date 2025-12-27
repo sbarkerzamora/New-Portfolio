@@ -18,10 +18,9 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Code2, Globe, Zap } from "lucide-react";
+import { Code2, Globe, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import gsap from "gsap";
-import Image from "next/image";
 import styles from "./ServicesSection.module.css";
 import profileData from "@/docs/profile.json";
 
@@ -33,22 +32,25 @@ const CAROUSEL_INTERVAL = 4000;
 
 /**
  * ImageCarousel Component
- * A simple image carousel with dots indicator and auto-rotation
+ * A simple image carousel with navigation arrows and auto-rotation
+ * Using a simpler implementation without shadcn for better control
  */
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-rotate images
+  // Auto-rotation
   useEffect(() => {
     if (images.length <= 1) return;
 
-    intervalRef.current = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-    }, CAROUSEL_INTERVAL);
+    const startAutoRotation = () => {
+      intervalRef.current = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }, CAROUSEL_INTERVAL);
+    };
+
+    startAutoRotation();
 
     return () => {
       if (intervalRef.current) {
@@ -57,13 +59,13 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
     };
   }, [images.length]);
 
-  // Handle dot click
-  const handleDotClick = useCallback((index: number) => {
-    setCurrentIndex(index);
-    // Reset the interval when user manually changes slide
+  const goToPrevious = useCallback(() => {
+    // Reset auto-rotation timer
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+    // Restart auto-rotation
     if (images.length > 1) {
       intervalRef.current = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % images.length);
@@ -71,115 +73,93 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
     }
   }, [images.length]);
 
-  // Touch handlers for mobile swipe
-  const minSwipeDistance = 50;
-
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
-    touchEndX.current = null;
-    touchStartX.current = e.targetTouches[0].clientX;
-  }, []);
-
-  const onTouchMove = useCallback((e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  }, []);
-
-  const onTouchEnd = useCallback(() => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    
-    const distance = touchStartX.current - touchEndX.current;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      setCurrentIndex((prev) => (prev + 1) % images.length);
-      // Reset interval
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      if (images.length > 1) {
-        intervalRef.current = setInterval(() => {
-          setCurrentIndex((prev) => (prev + 1) % images.length);
-        }, CAROUSEL_INTERVAL);
-      }
+  const goToNext = useCallback(() => {
+    // Reset auto-rotation timer
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
-    if (isRightSwipe) {
-      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
-      // Reset interval
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      if (images.length > 1) {
-        intervalRef.current = setInterval(() => {
-          setCurrentIndex((prev) => (prev + 1) % images.length);
-        }, CAROUSEL_INTERVAL);
-      }
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+    // Restart auto-rotation
+    if (images.length > 1) {
+      intervalRef.current = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }, CAROUSEL_INTERVAL);
     }
   }, [images.length]);
 
   if (images.length === 0) {
     return (
       <div className={styles.imagePlaceholder}>
-        <div className={styles.dots}>
-          <span className={styles.dot} />
-          <span className={styles.dot} />
-          <span className={styles.dot} />
+        <div className={styles.placeholderContent}>
+          <span>No images</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div 
-      ref={carouselRef}
-      className={styles.carousel}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-    >
+    <div ref={containerRef} className={styles.simpleCarousel}>
       {/* Images */}
-      <div className={styles.carouselTrack}>
-        {images.map((src, index) => (
-          <div
-            key={src}
-            className={cn(
-              styles.carouselSlide,
-              index === currentIndex && styles.carouselSlideActive
-            )}
-          >
-            <Image
-              src={src}
-              alt={`${alt} - imagen ${index + 1}`}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className={styles.carouselImage}
-              priority={index === 0}
-            />
-          </div>
-        ))}
+      <div className={styles.slidesContainer}>
+        {images.map((src, index) => {
+          const imageSrc = src.trim().startsWith('/') ? src.trim() : `/${src.trim()}`;
+          return (
+            <div
+              key={`${imageSrc}-${index}`}
+              className={cn(
+                styles.slide,
+                index === currentIndex && styles.slideActive
+              )}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageSrc}
+                alt={`${alt} - imagen ${index + 1}`}
+                className={styles.slideImage}
+                loading={index === 0 ? "eager" : "lazy"}
+              />
+            </div>
+          );
+        })}
       </div>
+
+      {/* Navigation arrows */}
+      {images.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={goToPrevious}
+            className={cn(styles.carouselNav, styles.carouselNavPrev)}
+            aria-label="Imagen anterior"
+          >
+            <ChevronLeft className={styles.carouselNavIcon} />
+          </button>
+          <button
+            type="button"
+            onClick={goToNext}
+            className={cn(styles.carouselNav, styles.carouselNavNext)}
+            aria-label="Siguiente imagen"
+          >
+            <ChevronRight className={styles.carouselNavIcon} />
+          </button>
+        </>
+      )}
 
       {/* Dots indicator */}
       {images.length > 1 && (
-        <div className={styles.dots}>
+        <div className={styles.dotsContainer}>
           {images.map((_, index) => (
             <button
               key={index}
               type="button"
-              onClick={() => handleDotClick(index)}
+              onClick={() => setCurrentIndex(index)}
               className={cn(
-                styles.dot,
-                index === currentIndex && styles.dotActive
+                styles.dotButton,
+                index === currentIndex && styles.dotButtonActive
               )}
               aria-label={`Ver imagen ${index + 1}`}
             />
           ))}
-        </div>
-      )}
-
-      {/* Single dot for single image */}
-      {images.length === 1 && (
-        <div className={styles.dots}>
-          <span className={cn(styles.dot, styles.dotActive)} />
         </div>
       )}
     </div>
@@ -324,6 +304,10 @@ export default function ServicesSection() {
           {servicios.items.map((item, index) => {
             const IconComponent = serviceIcons[index] || Code2;
             const images = (item as any).imagenes || [];
+            // Debug: log images array
+            if (images.length > 0) {
+              console.log(`📋 Images for ${item.titulo}:`, images);
+            }
             
             return (
               <div

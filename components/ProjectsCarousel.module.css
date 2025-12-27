@@ -7,9 +7,22 @@
   width: 100%;
   max-width: 100%;
   padding: 0.5rem;
-  /* Improve touch interaction */
-  touch-action: pan-y pinch-zoom;
-  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.carouselWrapper {
+  width: 100%;
+  max-width: 100%;
+}
+
+.carouselContent {
+  /* Remove default padding from shadcn */
+  margin-left: 0;
+}
+
+.carouselItem {
+  /* Remove default padding from shadcn */
+  padding-left: 0;
 }
 
 /* Navigation controls */
@@ -20,6 +33,31 @@
   width: 100%;
   justify-content: center;
   padding: 0.5rem 0;
+  position: relative;
+  z-index: 10;
+}
+
+.navButton {
+  position: static !important;
+  transform: none !important;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 50%;
+  color: rgba(16, 185, 129, 0.9);
+  transition: all 0.2s ease;
+  width: 44px;
+  height: 44px;
+}
+
+.navButton:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.5);
+  transform: scale(1.1);
+}
+
+.navButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .counter {
@@ -183,26 +221,15 @@
     padding: 0.5rem 0;
   }
 
-  .controls button {
+  .navButton {
     min-width: 44px;
     min-height: 44px;
     width: 44px;
     height: 44px;
     padding: 0;
-    background: rgba(16, 185, 129, 0.15);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 50%;
-    transition: all 0.2s ease;
   }
 
-  .controls button:hover,
-  .controls button:active {
-    background: rgba(16, 185, 129, 0.25);
-    border-color: rgba(16, 185, 129, 0.5);
-    transform: scale(1.1);
-  }
-
-  .controls button:active {
+  .navButton:active:not(:disabled) {
     transform: scale(0.95);
     transition: transform 0.1s ease;
   }
@@ -211,12 +238,6 @@
   .projectCard {
     touch-action: pan-y;
     -webkit-tap-highlight-color: transparent;
-  }
-
-  .controls button svg {
-    width: 20px;
-    height: 20px;
-    color: rgba(16, 185, 129, 0.9);
   }
 
   .counter {

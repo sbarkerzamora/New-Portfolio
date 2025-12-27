@@ -235,9 +235,11 @@
 .imageContainer {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
   overflow: hidden;
-  background: hsl(var(--card));
+  background: transparent;
+  /* Aspect ratio 16:10 using padding-bottom trick */
+  padding-bottom: 62.5%; /* 10/16 = 0.625 */
+  height: 0;
 }
 
 /* Placeholder gradient overlay */
@@ -252,136 +254,152 @@
     linear-gradient(225deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
 }
 
-/* Placeholder noise texture */
-.imagePlaceholder::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.03;
-  mix-blend-mode: overlay;
+.placeholderContent {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.875rem;
 }
 
-/* Image Carousel */
-.carousel {
+/* Simple Image Carousel */
+.simpleCarousel {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.slidesContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1;
+}
+
+.slideActive {
+  opacity: 1;
+  z-index: 2;
+}
+
+.slideImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Navigation buttons */
+.carouselNav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Improve touch interaction */
-  touch-action: pan-x pinch-zoom;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
+  transition: all 0.2s ease;
+  padding: 0;
 }
 
-.carouselTrack {
+.carouselNav:hover {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(16, 185, 129, 0.5);
+  color: rgba(16, 185, 129, 1);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carouselNavPrev {
+  left: 0.5rem;
+}
+
+.carouselNavNext {
+  right: 0.5rem;
+}
+
+.carouselNavIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Dots indicator */
+.dotsContainer {
   position: absolute;
-  inset: 0;
-}
-
-.carouselSlide {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.5s ease-in-out;
-}
-
-.carouselSlideActive {
-  opacity: 1;
-}
-
-.carouselImage {
-  object-fit: cover;
-  object-position: center;
-}
-
-/* Dots indicator - emerald theme */
-.dots {
-  position: absolute;
-  bottom: 1rem;
+  bottom: 0.75rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   gap: 0.5rem;
   z-index: 10;
+  align-items: center;
+  justify-content: center;
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
+.dotButton {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.4);
   border: none;
   padding: 0;
+  margin: 0;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.dot:hover {
-  background: rgba(255, 255, 255, 0.5);
+.dotButton:hover {
+  background: rgba(255, 255, 255, 0.6);
 }
 
-.dotActive {
-  background: rgba(16, 185, 129, 0.9);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+.dotButtonActive {
+  background: rgba(16, 185, 129, 1);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  width: 8px;
+  height: 8px;
 }
 
-/* Mobile improvements for dots */
+/* Mobile improvements for carousel */
 @media (max-width: 640px) {
-  .dots {
-    bottom: 0.75rem;
-    gap: 0.625rem;
+  .carouselNav {
+    width: 28px;
+    height: 28px;
   }
 
-  .dot {
-    width: 10px;
-    height: 10px;
-    /* Increase touch target area - minimum 44x44px for accessibility */
-    padding: 17px;
-    margin: -17px;
-    background: rgba(255, 255, 255, 0.4);
-    -webkit-tap-highlight-color: transparent;
-    cursor: pointer;
+  .carouselNavIcon {
+    width: 14px;
+    height: 14px;
   }
 
-  .dot::before {
-    content: '';
-    display: block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: inherit;
-    transition: all 0.3s ease;
+  .dotsContainer {
+    bottom: 0.5rem;
+    gap: 0.4rem;
   }
 
-  .dot:hover,
-  .dot:active {
-    background: rgba(255, 255, 255, 0.6);
+  .dotButton {
+    width: 5px;
+    height: 5px;
   }
 
-  .dot:active {
-    transform: scale(0.9);
-    transition: transform 0.1s ease;
-  }
-
-  .dotActive {
-    background: rgba(16, 185, 129, 1);
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
-  }
-
-  .dotActive::before {
-    background: rgba(16, 185, 129, 1);
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
-  }
-
-  /* Improve carousel touch interaction */
-  .carouselTrack {
-    touch-action: pan-x;
-  }
-
-  .carouselSlide {
-    touch-action: pan-x;
+  .dotButtonActive {
+    width: 7px;
+    height: 7px;
   }
 }
 
@@ -447,4 +465,9 @@
     font-size: 0.9rem;
     line-height: 1.55;
   }
+}
+
+/* Smooth image loading */
+.slideImage {
+  transition: opacity 0.3s ease;
 }

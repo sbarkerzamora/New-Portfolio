@@ -2,10 +2,18 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import styles from "./ProjectsCarousel.module.css";
 
 type Project = {
@@ -31,100 +39,92 @@ interface ProjectsCarouselProps {
  */
 export default function ProjectsCarousel({ projects, ctaLabel = "Explorar más" }: ProjectsCarouselProps) {
   const items = useMemo(() => projects ?? [], [projects]);
-  const [index, setIndex] = useState(0);
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCurrent(api.selectedScrollSnap() + 1);
+    setCanScrollPrev(api.canScrollPrev());
+    setCanScrollNext(api.canScrollNext());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap() + 1);
+      setCanScrollPrev(api.canScrollPrev());
+      setCanScrollNext(api.canScrollNext());
+    });
+  }, [api]);
 
   if (!items.length) {
     return null;
   }
 
-  const current = items[index % items.length];
-
-  const handlePrev = () => setIndex((prev) => (prev - 1 + items.length) % items.length);
-  const handleNext = () => setIndex((prev) => (prev + 1) % items.length);
-
-  // Touch handlers for mobile swipe
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchEndX.current = null;
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-    
-    const distance = touchStartX.current - touchEndX.current;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      handleNext();
-    }
-    if (isRightSwipe) {
-      handlePrev();
-    }
-  };
-
   return (
-    <div 
-      ref={carouselRef}
-      className={styles.carousel}
-      onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
-      onTouchEnd={onTouchEnd}
-    >
-      <div className={styles.controls}>
-        <Button variant="ghost" size="icon" onClick={handlePrev} aria-label="Proyecto anterior">
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <span className={styles.counter}>
-          {index + 1} / {items.length}
-        </span>
-        <Button variant="ghost" size="icon" onClick={handleNext} aria-label="Siguiente proyecto">
-          <ChevronRight className="h-5 w-5" />
-        </Button>
-      </div>
-
-      <Card className={styles.projectCard}>
-        <CardContent className={styles.imageContainer}>
-          {current.imagen ? (
-            <img src={current.imagen} alt={current.nombre} className={styles.image} loading="lazy" />
-          ) : (
-            <div className={styles.imagePlaceholder}>Sin imagen</div>
-          )}
-        </CardContent>
-
-        <div className={styles.textColumn}>
-          <CardHeader className={styles.cardHeader}>
-            <CardTitle className={styles.title}>{current.nombre}</CardTitle>
-            <CardDescription className={styles.description}>{current.descripcion}</CardDescription>
-            {current.categoria && <p className={styles.category}>{current.categoria}</p>}
-          </CardHeader>
-          <CardFooter className={styles.cardFooter}>
-            <Button
-              variant="ghost"
-              className={styles.exploreButton}
-              type="button"
-              onClick={() => {
-                if (current.enlace) {
-                  window.open(current.enlace, "_blank", "noreferrer");
-                }
-              }}
-              disabled={!current.enlace}
-            >
-              {ctaLabel}
-              <ExternalLink className={styles.externalIcon} />
-            </Button>
-          </CardFooter>
+    <div className={styles.carousel}>
+      <Carousel setApi={setApi} className={styles.carouselWrapper}>
+        <div className={styles.controls}>
+          <CarouselPrevious 
+            className={styles.navButton}
+            aria-label="Proyecto anterior"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </CarouselPrevious>
+          <span className={styles.counter}>
+            {current} / {items.length}
+          </span>
+          <CarouselNext 
+            className={styles.navButton}
+            aria-label="Siguiente proyecto"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </CarouselNext>
         </div>
-      </Card>
+
+        <CarouselContent className={styles.carouselContent}>
+          {items.map((project) => (
+            <CarouselItem key={project.nombre} className={styles.carouselItem}>
+              <Card className={styles.projectCard}>
+                <CardContent className={styles.imageContainer}>
+                  {project.imagen ? (
+                    <img src={project.imagen} alt={project.nombre} className={styles.image} loading="lazy" />
+                  ) : (
+                    <div className={styles.imagePlaceholder}>Sin imagen</div>
+                  )}
+                </CardContent>
+
+                <div className={styles.textColumn}>
+                  <CardHeader className={styles.cardHeader}>
+                    <CardTitle className={styles.title}>{project.nombre}</CardTitle>
+                    <CardDescription className={styles.description}>{project.descripcion}</CardDescription>
+                    {project.categoria && <p className={styles.category}>{project.categoria}</p>}
+                  </CardHeader>
+                  <CardFooter className={styles.cardFooter}>
+                    <Button
+                      variant="ghost"
+                      className={styles.exploreButton}
+                      type="button"
+                      onClick={() => {
+                        if (project.enlace) {
+                          window.open(project.enlace, "_blank", "noreferrer");
+                        }
+                      }}
+                      disabled={!project.enlace}
+                    >
+                      {ctaLabel}
+                      <ExternalLink className={styles.externalIcon} />
+                    </Button>
+                  </CardFooter>
+                </div>
+              </Card>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
     </div>
   );
 }
