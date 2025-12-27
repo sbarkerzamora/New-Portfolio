@@ -214,6 +214,16 @@ export const translations = {
       buttonText: "HABLEMOS DE CÓDIGO",
     },
     
+    // CTA Section
+    cta: {
+      title: "¿Listo para llevar tu proyecto al siguiente nivel?",
+      subtitle: "Transformemos tus ideas en soluciones digitales que impulsen tu negocio.",
+      caption: "Agenda una llamada de 15 minutos",
+      marqueeText: "Agenda una llamada ✦ Agenda una llamada",
+      buttonText: "Agenda una llamada",
+      buttonAriaLabel: "Abrir el calendario para agendar una llamada",
+    },
+    
     // Info modal
     infoModal: {
       projectName: "Portfolio de Stephan Barker",
@@ -449,6 +459,16 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       callToAction: "BOOST YOUR PROJECT",
       subtitle: "Need a complex integration or a modern app? Let's talk about how Next.js and solid infrastructure can scale your business.",
       buttonText: "LET'S TALK CODE",
+    },
+    
+    // CTA Section
+    cta: {
+      title: "Ready to take your project to the next level?",
+      subtitle: "Let's transform your ideas into digital solutions that drive your business forward.",
+      caption: "Schedule a 15-minute call",
+      marqueeText: "Schedule a call ✦ Schedule a call",
+      buttonText: "Schedule a call",
+      buttonAriaLabel: "Open calendar to schedule a call",
     },
     
     // Info modal
