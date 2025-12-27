@@ -10,7 +10,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import Cal, { getCalApi } from "@calcom/embed-react";
 import { cn } from "@/lib/utils";

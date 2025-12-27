@@ -19,7 +19,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Code2, Globe, Zap, ChevronLeft, ChevronRight } from "lucide-react";
+import { Code, Globe, Lightning, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import gsap from "gsap";
@@ -27,7 +27,7 @@ import styles from "./ServicesSection.module.css";
 import profileData from "@/docs/profile.json";
 
 // Icons mapping for each service
-const serviceIcons = [Code2, Globe, Zap];
+const serviceIcons = [Code, Globe, Lightning];
 
 // Auto-rotate interval in milliseconds
 const CAROUSEL_INTERVAL = 4000;
@@ -141,7 +141,7 @@ function ImageCarousel({ images, alt, prevLabel, nextLabel }: {
             className={cn(styles.carouselNav, styles.carouselNavPrev)}
             aria-label={prevLabel}
           >
-            <ChevronLeft className={styles.carouselNavIcon} />
+            <CaretLeft className={styles.carouselNavIcon} />
           </button>
           <button
             type="button"
@@ -149,7 +149,7 @@ function ImageCarousel({ images, alt, prevLabel, nextLabel }: {
             className={cn(styles.carouselNav, styles.carouselNavNext)}
             aria-label={nextLabel}
           >
-            <ChevronRight className={styles.carouselNavIcon} />
+            <CaretRight className={styles.carouselNavIcon} />
           </button>
         </>
       )}
@@ -345,7 +345,7 @@ export default function ServicesSection() {
         {/* Cards Grid */}
         <div className={styles.grid}>
           {translatedServices.items.map((item, index) => {
-            const IconComponent = serviceIcons[index] || Code2;
+            const IconComponent = serviceIcons[index] || Code;
             const images = item.imagenes || [];
             
             return (
@@ -358,7 +358,7 @@ export default function ServicesSection() {
                 <div className={styles.cardContent}>
                   {/* Icon */}
                   <div className={styles.iconContainer}>
-                    <IconComponent className={styles.icon} strokeWidth={1.5} />
+                    <IconComponent className={styles.icon} weight="regular" />
                   </div>
 
                   {/* Title */}

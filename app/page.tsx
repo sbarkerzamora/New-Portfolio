@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useRef } from "react";
-import { Info, Calendar, Download } from "lucide-react";
+import { Info, Calendar, Download } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import MinimalChat from "@/components/MinimalChat";

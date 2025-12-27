@@ -5,11 +5,11 @@ import {
   Check,
   Copy,
   Download,
-  ExternalLink,
-  Github,
+  ArrowSquareOut,
+  GithubLogo,
   Terminal,
   X,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import styles from "./InfoModal.module.css";
@@ -124,7 +124,7 @@ export default function InfoModal({
             </div>
             <div className={styles.repoCard}>
               <div className={styles.repoTitle}>
-                <Github className="h-5 w-5" />
+                <GithubLogo className="h-5 w-5" />
                 <span>{cleanRepoUrl.replace("https://github.com/", "")}</span>
               </div>
               <p className={styles.repoHint}>
@@ -142,7 +142,7 @@ export default function InfoModal({
                   )}
                 >
                   Ver en GitHub
-                  <ExternalLink className="h-4 w-4" />
+                  <ArrowSquareOut className="h-4 w-4" />
                 </a>
                 <Button
                   variant="outline"

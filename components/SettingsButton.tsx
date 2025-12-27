@@ -16,7 +16,7 @@
  */
 
 import React, { useState, useCallback } from "react";
-import { Globe } from "lucide-react";
+import { Globe } from "@phosphor-icons/react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import SettingsDrawer from "./SettingsDrawer";
 import styles from "./SettingsButton.module.css";

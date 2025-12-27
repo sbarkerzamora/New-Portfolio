@@ -5,7 +5,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { CaretLeft, CaretRight, ArrowSquareOut } from "@phosphor-icons/react";
 import {
   Carousel,
   CarouselContent,
@@ -72,7 +72,7 @@ export default function ProjectsCarousel({ projects, ctaLabel = "Explorar más" 
             className={styles.navButton}
             aria-label="Proyecto anterior"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <CaretLeft className="h-5 w-5" />
           </CarouselPrevious>
           <span className={styles.counter}>
             {current} / {items.length}
@@ -81,7 +81,7 @@ export default function ProjectsCarousel({ projects, ctaLabel = "Explorar más" 
             className={styles.navButton}
             aria-label="Siguiente proyecto"
           >
-            <ChevronRight className="h-5 w-5" />
+            <CaretRight className="h-5 w-5" />
           </CarouselNext>
         </div>
 
@@ -116,7 +116,7 @@ export default function ProjectsCarousel({ projects, ctaLabel = "Explorar más" 
                       disabled={!project.enlace}
                     >
                       {ctaLabel}
-                      <ExternalLink className={styles.externalIcon} />
+                      <ArrowSquareOut className={styles.externalIcon} />
                     </Button>
                   </CardFooter>
                 </div>

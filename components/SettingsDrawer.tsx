@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useRef, useCallback, useState } from "react";
-import { X, Sun, Moon, Globe, Settings, Check } from "lucide-react";
+import { X, Sun, Moon, Globe, Gear, Check } from "@phosphor-icons/react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -125,7 +125,7 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.titleIcon}>
-              <Settings />
+              <Gear />
             </div>
             <h2 id="settings-title" className={styles.title}>
               {t("settings.title")}

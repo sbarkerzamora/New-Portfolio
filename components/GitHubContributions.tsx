@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ArrowSquareOut } from "@phosphor-icons/react";
 import styles from "./GitHubContributions.module.css";
 
 interface GitHubContributionsProps {
@@ -123,7 +123,7 @@ export default function GitHubContributions({
           className={styles.link}
         >
           @{username}
-          <ExternalLink className="h-3 w-3" />
+          <ArrowSquareOut className="h-3 w-3" />
         </a>
       </div>
       <div className={styles.graph}>

@@ -24,6 +24,11 @@ export const metadata: Metadata = {
   title: "Stephan Barker | Asesor Digital",
   description:
     "Interfaz de chat para conocer el perfil profesional de Stephan Barker.",
+  icons: {
+    icon: "/assets/images/avatar.png",
+    shortcut: "/assets/images/avatar.png",
+    apple: "/assets/images/avatar.png",
+  },
 };
 
 export default function RootLayout({

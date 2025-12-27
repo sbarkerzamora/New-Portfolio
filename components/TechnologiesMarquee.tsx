@@ -28,7 +28,7 @@ import {
   Circle,
   BracketsCurly,
   FileJs,
-} from "phosphor-react";
+} from "@phosphor-icons/react";
 import styles from "./TechnologiesMarquee.module.css";
 
 // Map technology names to Phosphor Icons

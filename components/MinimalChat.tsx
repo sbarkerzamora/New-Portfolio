@@ -16,7 +16,7 @@
  */
 
 import React, { useState, useRef, useEffect, useMemo, useCallback, Fragment, ReactNode } from "react";
-import { Send, X, Info, ChevronDown } from "lucide-react";
+import { PaperPlaneTilt, X, Info, CaretDown } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -1085,7 +1085,13 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
                 >
                   {message.role === "assistant" && (
                     <div className={styles.messageAvatar}>
-                      <span>🤖</span>
+                      <Image
+                        src="/assets/images/avatar.png"
+                        alt="Stephan Barker"
+                        width={28}
+                        height={28}
+                        className={styles.avatarImage}
+                      />
                     </div>
                   )}
                   <div className={cn(
@@ -1185,14 +1191,14 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
           disabled={!input.trim() || status === "submitted" || status === "streaming"}
           aria-label={t("ui.send")}
         >
-          <Send className="h-4 w-4" />
+          <PaperPlaneTilt className="h-4 w-4" />
         </Button>
       </form>
 
       {/* Scroll indicator - below input, subtle and minimalistic */}
       {showScrollIndicator && (
         <div className={styles.scrollIndicator} onClick={scrollToBottom} aria-label={t("ui.scrollDown")}>
-          <ChevronDown className={styles.scrollIndicatorIcon} />
+          <CaretDown className={styles.scrollIndicatorIcon} />
         </div>
       )}
     </div>
