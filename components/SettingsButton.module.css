@@ -1,0 +1,118 @@
+/**
+ * SettingsButton Styles
+ * 
+ * Minimalist floating action button with subtle animations.
+ * Positioned in the bottom-right corner, above the footer.
+ */
+
+.floatingButton {
+  position: fixed;
+  bottom: 5rem;
+  right: 1.25rem;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 50%;
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.floatingButton:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+}
+
+.floatingButton:active {
+  transform: scale(0.98);
+}
+
+.floatingButton:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Light theme adjustments */
+:global(.light) .floatingButton {
+  background: hsl(0 0% 100%);
+  border-color: hsl(var(--border));
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+:global(.light) .floatingButton:hover {
+  background: hsl(0 0% 98%);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Entrance animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.floatingButton {
+  animation: fadeInUp 0.4s ease-out;
+  animation-delay: 0.5s;
+  animation-fill-mode: backwards;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .floatingButton {
+    animation: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  
+  .floatingButton:hover {
+    transform: none;
+  }
+  
+  .floatingButton:active {
+    transform: none;
+  }
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .floatingButton {
+    width: 44px;
+    height: 44px;
+    bottom: 4.5rem;
+    right: 1rem;
+  }
+  
+  .icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Large screens */
+@media (min-width: 1024px) {
+  .floatingButton {
+    right: 1.5rem;
+    bottom: 5.5rem;
+  }
+}
+

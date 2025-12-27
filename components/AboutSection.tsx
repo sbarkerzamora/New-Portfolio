@@ -1,18 +1,35 @@
 "use client";
 
+/**
+ * AboutSection Component
+ * 
+ * A full-height section showcasing the profile with image and experience timeline.
+ * Supports dark/light themes with animated entrance effects.
+ * 
+ * Features:
+ * - Animated background effect
+ * - Profile image with overlay
+ * - Experience timeline
+ * - Multi-language support (ES/EN)
+ * - Respects prefers-reduced-motion
+ * 
+ * @module components/AboutSection
+ */
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./AboutSection.module.css";
-import profileData from "@/docs/profile.json";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/lib/translations";
 import PixelBlast from "./PixelBlast";
 import { cn } from "@/lib/utils";
 
 export default function AboutSection() {
-  const { perfil_profesional, estadisticas, experiencia_laboral } = profileData;
-
-  const timeline = useMemo(
-    () => experiencia_laboral.slice(0, 3),
-    [experiencia_laboral]
-  );
+  const { t, language } = useLanguage();
+  
+  // Get translated experience data
+  const timeline = useMemo(() => {
+    return translations[language].experience.slice(0, 3);
+  }, [language]);
 
   const [enableBlast, setEnableBlast] = useState(false);
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -94,7 +111,7 @@ export default function AboutSection() {
               isVisible ? styles.visible : styles.hidden
             )}
             role="img"
-            aria-label="Retrato Stephan Barker"
+            aria-label={t("about.portrait")}
             style={{ transitionDelay: isVisible ? "60ms" : "0ms" }}
           >
             <div className={styles.mediaOverlay} />
@@ -113,34 +130,34 @@ export default function AboutSection() {
         >
           <div className={styles.eyebrow}>
             <span className={styles.eyebrowSlash}>//</span>
-            <span>Acerca de</span>
+            <span>{t("about.eyebrow")}</span>
             <span className={styles.eyebrowSlash}>//</span>
           </div>
 
           <h2 id="about-title" className={styles.title}>
-            {perfil_profesional.titulo_principal}
+            {t("profile.title")}
           </h2>
 
-          <p className={styles.lead}>{perfil_profesional.resumen_perfil}</p>
-          <p className={styles.bodyText}>{perfil_profesional.enfoque}</p>
+          <p className={styles.lead}>{t("profile.summary")}</p>
+          <p className={styles.bodyText}>{t("profile.focus")}</p>
 
           <div
             ref={timelineRef}
             className={cn(styles.timeline, isVisible ? styles.visible : styles.hidden)}
             style={{ transitionDelay: isVisible ? "220ms" : "0ms" }}
           >
-            <h3 className={styles.cardTitle}>Experiencia</h3>
+            <h3 className={styles.cardTitle}>{t("about.experienceTitle")}</h3>
             <ul className={styles.timelineList}>
-              {timeline.map((exp) => (
-                <li key={`${exp.empresa}-${exp.periodo}`} className={styles.timelineItem}>
+              {timeline.map((exp, index) => (
+                <li key={`${exp.company}-${exp.period}-${index}`} className={styles.timelineItem}>
                   <div className={styles.timelineDot} aria-hidden="true" />
                   <div className={styles.timelineContent}>
                     <div className={styles.timelineMeta}>
-                      <span className={styles.timelineRole}>{exp.rol}</span>
-                      <span className={styles.timelinePeriod}>{exp.periodo}</span>
+                      <span className={styles.timelineRole}>{exp.role}</span>
+                      <span className={styles.timelinePeriod}>{exp.period}</span>
                     </div>
-                    <div className={styles.timelineCompany}>{exp.empresa}</div>
-                    <p className={styles.timelineDescription}>{exp.descripcion}</p>
+                    <div className={styles.timelineCompany}>{exp.company}</div>
+                    <p className={styles.timelineDescription}>{exp.description}</p>
                   </div>
                 </li>
               ))}
@@ -151,7 +168,3 @@ export default function AboutSection() {
     </section>
   );
 }
-
-
-
-

@@ -1,0 +1,221 @@
+/**
+ * SettingsDrawer Styles
+ * 
+ * Minimalist bottom drawer with slide-up animation.
+ * Supports both dark and light themes.
+ */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.drawer {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  margin: 0 auto;
+  padding: 1.5rem;
+  padding-top: 1rem;
+  border-radius: 1.5rem 1.5rem 0 0;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-bottom: none;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(100%);
+  animation: slideUp 0.3s ease-out forwards;
+  overflow-y: auto;
+}
+
+/* Light theme adjustments */
+:global(.light) .drawer {
+  background: hsl(0 0% 100%);
+  border-color: hsl(var(--border));
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.drawerOpen {
+  transform: translateY(0);
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .backdrop {
+    animation: none;
+  }
+  .drawer {
+    animation: none;
+    transform: translateY(0);
+  }
+}
+
+.handleIndicator {
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 4px;
+  border-radius: 2px;
+  background: hsl(var(--muted-foreground) / 0.3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-top: 0.5rem;
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.closeButton:hover {
+  background: hsl(var(--muted-foreground) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.settingGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.settingLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.toggleGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toggleButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toggleButton:hover {
+  background: hsl(var(--muted) / 0.5);
+  border-color: hsl(var(--muted-foreground) / 0.3);
+}
+
+.toggleButton:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.toggleButtonActive {
+  background: hsl(var(--primary) / 0.15);
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+
+.toggleButtonActive:hover {
+  background: hsl(var(--primary) / 0.2);
+  border-color: hsl(var(--primary));
+}
+
+/* Light theme button adjustments */
+:global(.light) .toggleButton {
+  background: hsl(0 0% 98%);
+}
+
+:global(.light) .toggleButton:hover {
+  background: hsl(0 0% 95%);
+}
+
+:global(.light) .toggleButtonActive {
+  background: hsl(var(--primary) / 0.1);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .drawer {
+    max-width: 100%;
+    border-radius: 1.25rem 1.25rem 0 0;
+    padding: 1.25rem;
+  }
+
+  .toggleButton {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
+

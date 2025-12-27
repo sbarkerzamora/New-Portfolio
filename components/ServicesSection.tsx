@@ -4,22 +4,24 @@
  * ServicesSection Component
  * 
  * A full-height section showcasing services in a 3-column grid layout.
- * Dark theme with animated entrance effects triggered by IntersectionObserver.
+ * Supports dark/light themes with animated entrance effects triggered by IntersectionObserver.
  * 
  * Features:
  * - Eyebrow label with slashes
- * - Large title "¿Qué hago?"
+ * - Large title with translation support
  * - Description paragraph aligned right
  * - 3 service cards with icon, title, description, tags, and image carousel
  * - GSAP animations on scroll into view
  * - Respects prefers-reduced-motion
+ * - Multi-language support (ES/EN)
  * 
  * @module components/ServicesSection
  */
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Code2, Globe, Zap, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 import gsap from "gsap";
 import styles from "./ServicesSection.module.css";
 import profileData from "@/docs/profile.json";
@@ -35,7 +37,12 @@ const CAROUSEL_INTERVAL = 4000;
  * A simple image carousel with navigation arrows and auto-rotation
  * Using a simpler implementation without shadcn for better control
  */
-function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
+function ImageCarousel({ images, alt, prevLabel, nextLabel }: { 
+  images: string[]; 
+  alt: string;
+  prevLabel: string;
+  nextLabel: string;
+}) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -97,28 +104,6 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
     );
   }
 
-  // Debug: log carousel state and container dimensions
-  useEffect(() => {
-    if (containerRef.current) {
-      const container = containerRef.current.closest(`.${styles.imageContainer}`) as HTMLElement | null;
-      if (container) {
-        const rect = container.getBoundingClientRect();
-        console.log(`📐 Container dimensions [${alt}]:`, {
-          width: rect.width,
-          height: rect.height,
-          carouselWidth: containerRef.current.offsetWidth,
-          carouselHeight: containerRef.current.offsetHeight,
-        });
-      }
-    }
-    
-    console.log(`🎠 ImageCarousel [${alt}]:`, {
-      totalImages: images.length,
-      currentIndex,
-      imageSrcs: images.map((src) => src.trim().startsWith('/') ? src.trim() : `/${src.trim()}`),
-    });
-  }, [alt, images, currentIndex]);
-
   return (
     <div ref={containerRef} className={styles.simpleCarousel}>
       {/* Images */}
@@ -138,29 +123,9 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imageSrc}
-                alt={`${alt} - imagen ${index + 1}`}
+                alt={`${alt} - ${index + 1}`}
                 className={styles.slideImage}
                 loading={index === 0 ? "eager" : "lazy"}
-                onLoad={(e) => {
-                  const img = e.currentTarget;
-                  console.log(`✅ Image loaded [${alt}]:`, {
-                    index,
-                    src: imageSrc,
-                    naturalWidth: img.naturalWidth,
-                    naturalHeight: img.naturalHeight,
-                    currentSrc: img.currentSrc,
-                    isActive,
-                  });
-                }}
-                onError={(e) => {
-                  const img = e.currentTarget;
-                  console.error(`❌ Image failed [${alt}]:`, {
-                    index,
-                    src: imageSrc,
-                    attemptedSrc: img.src,
-                    currentSrc: img.currentSrc,
-                  });
-                }}
               />
             </div>
           );
@@ -174,7 +139,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
             type="button"
             onClick={goToPrevious}
             className={cn(styles.carouselNav, styles.carouselNavPrev)}
-            aria-label="Imagen anterior"
+            aria-label={prevLabel}
           >
             <ChevronLeft className={styles.carouselNavIcon} />
           </button>
@@ -182,7 +147,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
             type="button"
             onClick={goToNext}
             className={cn(styles.carouselNav, styles.carouselNavNext)}
-            aria-label="Siguiente imagen"
+            aria-label={nextLabel}
           >
             <ChevronRight className={styles.carouselNavIcon} />
           </button>
@@ -201,7 +166,7 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
                 styles.dotButton,
                 index === currentIndex && styles.dotButtonActive
               )}
-              aria-label={`Ver imagen ${index + 1}`}
+              aria-label={`${index + 1}`}
             />
           ))}
         </div>
@@ -217,8 +182,38 @@ export default function ServicesSection() {
   const descriptionRef = useRef<HTMLParagraphElement | null>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const [hasAnimated, setHasAnimated] = useState(false);
+  
+  const { t, language } = useLanguage();
 
-  const servicios = profileData.servicios;
+  // Get services data from profile.json (for images and tags)
+  const serviciosData = profileData.servicios;
+
+  // Get translated service content
+  const translatedServices = useMemo(() => ({
+    eyebrow: t("services.eyebrow"),
+    title: t("services.title"),
+    description: t("services.description"),
+    items: [
+      {
+        titulo: t("services.fullStack.title"),
+        descripcion: t("services.fullStack.description"),
+        tags: serviciosData.items[0]?.tags || [],
+        imagenes: (serviciosData.items[0] as any)?.imagenes || [],
+      },
+      {
+        titulo: t("services.wordpress.title"),
+        descripcion: t("services.wordpress.description"),
+        tags: serviciosData.items[1]?.tags || [],
+        imagenes: (serviciosData.items[1] as any)?.imagenes || [],
+      },
+      {
+        titulo: t("services.integrations.title"),
+        descripcion: t("services.integrations.description"),
+        tags: serviciosData.items[2]?.tags || [],
+        imagenes: (serviciosData.items[2] as any)?.imagenes || [],
+      },
+    ],
+  }), [t, serviciosData, language]);
 
   useEffect(() => {
     // Check for reduced motion preference
@@ -299,6 +294,10 @@ export default function ServicesSection() {
     }
   };
 
+  // Labels for carousel navigation
+  const prevLabel = language === "en" ? "Previous image" : "Imagen anterior";
+  const nextLabel = language === "en" ? "Next image" : "Siguiente imagen";
+
   return (
     <section
       ref={sectionRef}
@@ -318,7 +317,7 @@ export default function ServicesSection() {
               className={cn(styles.eyebrow, !hasAnimated && styles.hidden)}
             >
               <span className={styles.eyebrowSlash}>//</span>
-              <span>{servicios.eyebrow}</span>
+              <span>{translatedServices.eyebrow}</span>
               <span className={styles.eyebrowSlash}>//</span>
             </div>
 
@@ -328,7 +327,7 @@ export default function ServicesSection() {
               id="services-title"
               className={cn(styles.title, !hasAnimated && styles.hidden)}
             >
-              {servicios.titulo}
+              {translatedServices.title}
             </h2>
           </div>
 
@@ -338,24 +337,20 @@ export default function ServicesSection() {
               ref={descriptionRef}
               className={cn(styles.description, !hasAnimated && styles.hidden)}
             >
-              {servicios.descripcion}
+              {translatedServices.description}
             </p>
           </div>
         </div>
 
         {/* Cards Grid */}
         <div className={styles.grid}>
-          {servicios.items.map((item, index) => {
+          {translatedServices.items.map((item, index) => {
             const IconComponent = serviceIcons[index] || Code2;
-            const images = (item as any).imagenes || [];
-            // Debug: log images array
-            if (images.length > 0) {
-              console.log(`📋 Images for ${item.titulo}:`, images);
-            }
+            const images = item.imagenes || [];
             
             return (
               <div
-                key={item.titulo}
+                key={`service-${index}`}
                 ref={(el) => { cardsRef.current[index] = el; }}
                 className={cn(styles.card, !hasAnimated && styles.hidden)}
               >
@@ -385,7 +380,12 @@ export default function ServicesSection() {
 
                 {/* Image Carousel */}
                 <div className={styles.imageContainer}>
-                  <ImageCarousel images={images} alt={item.titulo} />
+                  <ImageCarousel 
+                    images={images} 
+                    alt={item.titulo} 
+                    prevLabel={prevLabel}
+                    nextLabel={nextLabel}
+                  />
                 </div>
               </div>
             );

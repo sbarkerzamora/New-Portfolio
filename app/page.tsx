@@ -11,6 +11,7 @@
  * - Minimalistic chat component (no card borders)
  * - Compact footer with Cal.com booking button
  * - Same background gradient as before
+ * - Multi-language support (ES/EN)
  * 
  * @module app/page
  */
@@ -25,6 +26,7 @@ import InfoModal from "@/components/InfoModal";
 import ServicesSection from "@/components/ServicesSection";
 import AboutSection from "@/components/AboutSection";
 import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
 import Image from "next/image";
@@ -38,6 +40,7 @@ const ColorBends = dynamic(() => import("@/components/ColorBends"), {
 
 function HomeContent() {
   const { openCalendar } = useCalModal();
+  const { t } = useLanguage();
   const chatRef = React.useRef<{ triggerContact: () => void } | null>(null);
   const [isInfoOpen, setIsInfoOpen] = React.useState(false);
   const [connectionStatus, setConnectionStatus] = React.useState<"idle" | "connecting" | "connected" | "error">("idle");
@@ -107,6 +110,20 @@ function HomeContent() {
     }
   };
 
+  // Get connection status text based on current language
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "connected":
+        return t("ui.connected");
+      case "connecting":
+        return t("ui.connecting");
+      case "error":
+        return t("ui.error");
+      default:
+        return t("ui.idle");
+    }
+  };
+
   return (
     <div className={styles.pageContainer}>
       {/* ColorBends animated background */}
@@ -162,13 +179,13 @@ function HomeContent() {
                   ? styles.headerStatusError
                   : styles.headerStatusIdle
               )}
-              title={connectionStatus === "connected" ? "Conectado" : connectionStatus === "connecting" ? "Conectando" : connectionStatus === "error" ? "Error" : "En espera"}
-              aria-label={`Estado: ${connectionStatus}`}
+              title={getStatusText(connectionStatus)}
+              aria-label={`${t("ui.idle").split(" ")[0]}: ${connectionStatus}`}
             />
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Información"
+              aria-label={t("ui.info")}
               onClick={() => setIsInfoOpen(true)}
               className={styles.headerInfoButton}
             >
@@ -206,8 +223,8 @@ function HomeContent() {
               size="icon"
               onClick={handleDownloadCV}
               className={styles.bookingButton}
-              aria-label="Descargar CV"
-              title="Descargar CV"
+              aria-label={t("ui.downloadCV")}
+              title={t("ui.downloadCV")}
             >
               <Download className="h-4 w-4" />
             </Button>
@@ -216,15 +233,15 @@ function HomeContent() {
               size="icon"
               onClick={openCalendar}
               className={styles.bookingButton}
-              aria-label="Reservar una cita"
-              title="Reservar una cita"
+              aria-label={t("ui.bookAppointment")}
+              title={t("ui.bookAppointment")}
             >
               <Calendar className="h-4 w-4" />
             </Button>
             <a
               href="mailto:hi@stephanbarker.com"
               className={styles.footerLink}
-              aria-label="Contacto por email"
+              aria-label={t("ui.contact")}
             >
               hi@stephanbarker.com
             </a>
@@ -236,12 +253,12 @@ function HomeContent() {
         isOpen={isInfoOpen}
         onClose={() => setIsInfoOpen(false)}
         repoUrl="https://github.com/sbarkerzamora/New-Portfolio.git"
-        projectName="Portfolio de Stephan Barker"
-        summary="Código abierto, minimalista y listo para reutilizar. Usa Next.js + TypeScript con animaciones suaves, chat embebido y flujos listos para booking y descarga de CV."
+        projectName={t("infoModal.projectName")}
+        summary={t("infoModal.summary")}
         highlights={[
-          "Stack listo para producción: Next.js, TypeScript, diseño responsive.",
-          "Componentes listos: chat minimalista, modal de booking y CV generado.",
-          "Fácil de adaptar: textos y enlaces configurables desde props.",
+          t("infoModal.highlights.0") || "Stack listo para producción: Next.js, TypeScript, diseño responsive.",
+          t("infoModal.highlights.1") || "Componentes listos: chat minimalista, modal de booking y CV generado.",
+          t("infoModal.highlights.2") || "Fácil de adaptar: textos y enlaces configurables desde props.",
         ]}
       />
     </div>
