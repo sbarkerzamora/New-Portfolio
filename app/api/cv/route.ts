@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import React from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { loadProfile } from "@/lib/profile";
 import { createCVDocument } from "@/components/CVDocument";

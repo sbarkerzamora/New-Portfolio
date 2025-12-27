@@ -21,7 +21,6 @@ import { Info, Calendar, Download } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import MinimalChat from "@/components/MinimalChat";
-import DecryptedText from "@/components/DecryptedText";
 import InfoModal from "@/components/InfoModal";
 import ServicesSection from "@/components/ServicesSection";
 import AboutSection from "@/components/AboutSection";
@@ -66,48 +65,92 @@ function HomeContent() {
     const uniqueTechs = Array.from(new Set(allTechs));
     return uniqueTechs.join(" ✦ ");
   }, []);
-  const chatRef = React.useRef<{ triggerContact: () => void } | null>(null);
   const [isInfoOpen, setIsInfoOpen] = React.useState(false);
   const [connectionStatus, setConnectionStatus] = React.useState<"idle" | "connecting" | "connected" | "error">("idle");
-  const [currentModel, setCurrentModel] = React.useState<string>("");
   const avatarRef = useRef<HTMLDivElement | null>(null);
   const headerRef = useRef<HTMLElement | null>(null);
   const footerRef = useRef<HTMLElement | null>(null);
 
   // Entrance animations for avatar and footer using GSAP
   useEffect(() => {
+    // Ensure header is visible immediately as fallback
+    if (headerRef.current) {
+      headerRef.current.style.visibility = "visible";
+      headerRef.current.style.opacity = "1";
+    }
+
     // Small delay to ensure DOM is ready and prevent hydration issues
     let ctx: gsap.Context | null = null;
     const timer = setTimeout(() => {
+      // Verify GSAP is available
+      if (typeof gsap === "undefined" || !gsap) {
+        // Fallback: ensure elements are visible if GSAP is not available
+        if (headerRef.current) {
+          headerRef.current.style.opacity = "1";
+          headerRef.current.style.visibility = "visible";
+        }
+        if (avatarRef.current) {
+          avatarRef.current.style.opacity = "1";
+        }
+        if (footerRef.current) {
+          footerRef.current.style.opacity = "1";
+        }
+        return;
+      }
+
       ctx = gsap.context(() => {
         if (avatarRef.current) {
-          // Reset any inline styles first
-          gsap.set(avatarRef.current, { clearProps: "all" });
-          gsap.from(avatarRef.current, {
+          // Set initial state explicitly before animating
+          gsap.set(avatarRef.current, {
             opacity: 0,
             scale: 0.85,
             y: -12,
+          });
+          gsap.to(avatarRef.current, {
+            opacity: 1,
+            scale: 1,
+            y: 0,
             duration: 0.6,
             ease: "power2.out",
             delay: 0.15,
           });
         }
         if (headerRef.current) {
-          // Reset any inline styles first, then animate
-          gsap.set(headerRef.current, { clearProps: "all" });
-          gsap.from(headerRef.current, {
+          // Set initial state explicitly before animating - ensure visibility
+          gsap.set(headerRef.current, {
             opacity: 0,
             y: -10,
+            visibility: "visible", // Ensure visibility is maintained
+          });
+          gsap.to(headerRef.current, {
+            opacity: 1,
+            y: 0,
             duration: 0.5,
             ease: "power1.out",
+            // Add immediate callback to ensure visibility
+            onStart: () => {
+              if (headerRef.current) {
+                headerRef.current.style.visibility = "visible";
+              }
+            },
+            // Fallback: ensure visibility even if animation fails
+            onComplete: () => {
+              if (headerRef.current) {
+                headerRef.current.style.opacity = "1";
+                headerRef.current.style.visibility = "visible";
+              }
+            },
           });
         }
         if (footerRef.current) {
-          // Reset any inline styles first
-          gsap.set(footerRef.current, { clearProps: "all" });
-          gsap.from(footerRef.current, {
+          // Set initial state explicitly before animating
+          gsap.set(footerRef.current, {
             opacity: 0,
             y: 12,
+          });
+          gsap.to(footerRef.current, {
+            opacity: 1,
+            y: 0,
             duration: 0.6,
             ease: "power1.out",
             delay: 0.25,
@@ -238,9 +281,8 @@ function HomeContent() {
         <main className={styles.mainContent}>
           <MinimalChat 
             onContactRequest={() => openCalendar()} 
-            onConnectionStatusChange={(status, model) => {
+            onConnectionStatusChange={(status) => {
               setConnectionStatus(status);
-              if (model) setCurrentModel(model);
             }}
           />
         </main>
