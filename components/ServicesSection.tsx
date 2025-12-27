@@ -38,6 +38,9 @@ const CAROUSEL_INTERVAL = 4000;
 function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   // Auto-rotate images
   useEffect(() => {
@@ -68,6 +71,51 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
     }
   }, [images.length]);
 
+  // Touch handlers for mobile swipe
+  const minSwipeDistance = 50;
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+      // Reset interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (images.length > 1) {
+        intervalRef.current = setInterval(() => {
+          setCurrentIndex((prev) => (prev + 1) % images.length);
+        }, CAROUSEL_INTERVAL);
+      }
+    }
+    if (isRightSwipe) {
+      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+      // Reset interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      if (images.length > 1) {
+        intervalRef.current = setInterval(() => {
+          setCurrentIndex((prev) => (prev + 1) % images.length);
+        }, CAROUSEL_INTERVAL);
+      }
+    }
+  }, [images.length]);
+
   if (images.length === 0) {
     return (
       <div className={styles.imagePlaceholder}>
@@ -81,7 +129,13 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   }
 
   return (
-    <div className={styles.carousel}>
+    <div 
+      ref={carouselRef}
+      className={styles.carousel}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       {/* Images */}
       <div className={styles.carouselTrack}>
         {images.map((src, index) => (

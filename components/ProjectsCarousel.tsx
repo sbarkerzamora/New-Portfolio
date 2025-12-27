@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
@@ -32,6 +32,9 @@ interface ProjectsCarouselProps {
 export default function ProjectsCarousel({ projects, ctaLabel = "Explorar más" }: ProjectsCarouselProps) {
   const items = useMemo(() => projects ?? [], [projects]);
   const [index, setIndex] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   if (!items.length) {
     return null;
@@ -42,8 +45,41 @@ export default function ProjectsCarousel({ projects, ctaLabel = "Explorar más" 
   const handlePrev = () => setIndex((prev) => (prev - 1 + items.length) % items.length);
   const handleNext = () => setIndex((prev) => (prev + 1) % items.length);
 
+  // Touch handlers for mobile swipe
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      handleNext();
+    }
+    if (isRightSwipe) {
+      handlePrev();
+    }
+  };
+
   return (
-    <div className={styles.carousel}>
+    <div 
+      ref={carouselRef}
+      className={styles.carousel}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       <div className={styles.controls}>
         <Button variant="ghost" size="icon" onClick={handlePrev} aria-label="Proyecto anterior">
           <ChevronLeft className="h-5 w-5" />

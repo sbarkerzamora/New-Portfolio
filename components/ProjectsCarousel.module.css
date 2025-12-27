@@ -7,6 +7,9 @@
   width: 100%;
   max-width: 100%;
   padding: 0.5rem;
+  /* Improve touch interaction */
+  touch-action: pan-y pinch-zoom;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Navigation controls */
@@ -171,16 +174,56 @@
   .carousel {
     gap: 0.75rem;
     padding: 0.25rem;
+    position: relative;
+    padding-bottom: 2rem;
   }
 
   .controls {
-    gap: 0.75rem;
-    padding: 0.25rem 0;
+    gap: 1rem;
+    padding: 0.5rem 0;
+  }
+
+  .controls button {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  .controls button:hover,
+  .controls button:active {
+    background: rgba(16, 185, 129, 0.25);
+    border-color: rgba(16, 185, 129, 0.5);
+    transform: scale(1.1);
+  }
+
+  .controls button:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+
+  /* Improve touch feedback */
+  .projectCard {
+    touch-action: pan-y;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .controls button svg {
+    width: 20px;
+    height: 20px;
+    color: rgba(16, 185, 129, 0.9);
   }
 
   .counter {
-    font-size: 0.75rem;
-    min-width: 2.5rem;
+    font-size: 0.8125rem;
+    min-width: 3rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .projectCard {
@@ -221,12 +264,34 @@
   .exploreButton {
     width: 100%;
     justify-content: center;
-    padding: 0.75rem 1.25rem;
+    padding: 0.875rem 1.5rem;
     font-size: 0.875rem;
+    min-height: 44px;
+    font-weight: 600;
+  }
+
+  .exploreButton:active {
+    transform: scale(0.98);
   }
 
   .cardFooter {
     justify-content: stretch;
+  }
+
+  /* Add visual swipe hint on mobile */
+  .carousel::after {
+    content: '← Desliza →';
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.6875rem;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    pointer-events: none;
+    opacity: 0.5;
+    white-space: nowrap;
   }
 }
 

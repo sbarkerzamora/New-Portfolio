@@ -16,7 +16,7 @@
  */
 
 import React, { useState, useRef, useEffect, useMemo, useCallback, Fragment, ReactNode } from "react";
-import { Send, X, Info } from "lucide-react";
+import { Send, X, Info, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -38,18 +38,21 @@ const MAX_MESSAGES = 10;
 /**
  * Parse basic markdown to React elements
  * Supports: **bold**, *italic*, - lists, numbered lists
+ * Uses stable keys based on content position to prevent blinking during streaming
  */
 function parseMarkdown(text: string): ReactNode {
   const lines = text.split('\n');
   const elements: ReactNode[] = [];
   let listItems: ReactNode[] = [];
   let listType: 'ul' | 'ol' | null = null;
+  let elementIndex = 0;
+  let listItemIndex = 0;
   
-  const parseInline = (line: string): ReactNode => {
+  const parseInline = (line: string, lineKey: string): ReactNode => {
     // Parse bold and italic
     const parts: ReactNode[] = [];
     let remaining = line;
-    let key = 0;
+    let keyIndex = 0;
     
     // Pattern for **bold** and *italic*
     const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g;
@@ -59,16 +62,19 @@ function parseMarkdown(text: string): ReactNode {
     while ((match = regex.exec(remaining)) !== null) {
       // Add text before match
       if (match.index > lastIndex) {
-        parts.push(remaining.slice(lastIndex, match.index));
+        const textBefore = remaining.slice(lastIndex, match.index);
+        if (textBefore) {
+          parts.push(<span key={`${lineKey}-text-${keyIndex++}`}>{textBefore}</span>);
+        }
       }
       
       // Add formatted text
       if (match[2]) {
         // Bold
-        parts.push(<strong key={key++} className="font-semibold text-white">{match[2]}</strong>);
+        parts.push(<strong key={`${lineKey}-bold-${keyIndex++}`} className="font-semibold text-white">{match[2]}</strong>);
       } else if (match[3]) {
         // Italic
-        parts.push(<em key={key++}>{match[3]}</em>);
+        parts.push(<em key={`${lineKey}-italic-${keyIndex++}`}>{match[3]}</em>);
       }
       
       lastIndex = match.index + match[0].length;
@@ -76,27 +82,34 @@ function parseMarkdown(text: string): ReactNode {
     
     // Add remaining text
     if (lastIndex < remaining.length) {
-      parts.push(remaining.slice(lastIndex));
+      const textAfter = remaining.slice(lastIndex);
+      if (textAfter) {
+        parts.push(<span key={`${lineKey}-text-${keyIndex++}`}>{textAfter}</span>);
+      }
     }
     
-    return parts.length > 0 ? parts : line;
+    return parts.length > 0 ? parts : <span key={`${lineKey}-plain`}>{line}</span>;
   };
   
   const flushList = () => {
     if (listItems.length > 0 && listType) {
       const ListTag = listType;
+      const listKey = `list-${listType}-${elementIndex}`;
       elements.push(
-        <ListTag key={elements.length} className={listType === 'ul' ? 'list-disc' : 'list-decimal'} style={{ paddingLeft: '1.25rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+        <ListTag key={listKey} className={listType === 'ul' ? 'list-disc' : 'list-decimal'} style={{ paddingLeft: '1.25rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>
           {listItems}
         </ListTag>
       );
       listItems = [];
       listType = null;
+      listItemIndex = 0;
+      elementIndex++;
     }
   };
   
   lines.forEach((line, index) => {
     const trimmedLine = line.trim();
+    const lineKey = `line-${index}`;
     
     // Check for unordered list
     if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('• ')) {
@@ -105,7 +118,7 @@ function parseMarkdown(text: string): ReactNode {
         listType = 'ul';
       }
       listItems.push(
-        <li key={index} style={{ marginBottom: '0.25rem' }}>{parseInline(trimmedLine.slice(2))}</li>
+        <li key={`${lineKey}-li-${listItemIndex++}`} style={{ marginBottom: '0.25rem' }}>{parseInline(trimmedLine.slice(2), `${lineKey}-content`)}</li>
       );
       return;
     }
@@ -118,7 +131,7 @@ function parseMarkdown(text: string): ReactNode {
         listType = 'ol';
       }
       listItems.push(
-        <li key={index} style={{ marginBottom: '0.25rem' }}>{parseInline(orderedMatch[2])}</li>
+        <li key={`${lineKey}-li-${listItemIndex++}`} style={{ marginBottom: '0.25rem' }}>{parseInline(orderedMatch[2], `${lineKey}-content`)}</li>
       );
       return;
     }
@@ -127,13 +140,14 @@ function parseMarkdown(text: string): ReactNode {
     flushList();
     
     if (trimmedLine === '') {
-      // Empty line
-      elements.push(<div key={index} style={{ height: '0.5rem' }} />);
+      // Empty line - use stable key
+      elements.push(<div key={`${lineKey}-empty`} style={{ height: '0.5rem' }} />);
     } else {
       elements.push(
-        <p key={index} style={{ marginBottom: '0.5rem' }}>{parseInline(line)}</p>
+        <p key={`${lineKey}-p`} style={{ marginBottom: '0.5rem' }}>{parseInline(line, lineKey)}</p>
       );
     }
+    elementIndex++;
   });
   
   // Flush remaining list
@@ -141,6 +155,33 @@ function parseMarkdown(text: string): ReactNode {
   
   return <>{elements}</>;
 }
+
+/**
+ * Memoized message content component to prevent re-rendering and blinking during streaming
+ * Uses stable keys in parseMarkdown to allow React to efficiently update only changed parts
+ */
+const MemoizedMessageContent = React.memo(({ content, role, messageId }: { content: string; role: "user" | "assistant"; messageId: string }) => {
+  const parsedContent = useMemo(() => {
+    if (role === "assistant") {
+      return parseMarkdown(content);
+    }
+    return content;
+  }, [content, role]);
+  
+  return <>{parsedContent}</>;
+}, (prevProps, nextProps) => {
+  // During streaming, content changes frequently but we want to allow updates
+  // The stable keys in parseMarkdown will help React efficiently update
+  // Only skip if nothing changed
+  if (prevProps.content === nextProps.content && 
+      prevProps.role === nextProps.role && 
+      prevProps.messageId === nextProps.messageId) {
+    return true; // Skip re-render
+  }
+  return false; // Allow re-render
+});
+
+MemoizedMessageContent.displayName = "MemoizedMessageContent";
 
 // LocalStorage key for welcome message
 const WELCOME_MESSAGE_KEY = "minimal-chat-welcome-dismissed";
@@ -431,8 +472,10 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
   const [currentModel, setCurrentModel] = useState<string>("");
   const [error, setError] = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
+  const messagesAreaRef = useRef<HTMLDivElement | null>(null);
   
   // Check localStorage only on client after hydration
   useEffect(() => {
@@ -538,19 +581,29 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     }],
   });
 
-  // Animate messages when new ones arrive
+  // Animate messages when new ones arrive (only for new messages, not updates)
+  const previousMessagesLengthRef = useRef(aiMessages.length);
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      if (messagesRef.current) {
-        gsap.fromTo(
-          messagesRef.current.querySelectorAll("[data-message]"),
-          { opacity: 0, y: 10 },
-          { opacity: 1, y: 0, duration: 0.25, stagger: 0.05, ease: "power1.out" }
-        );
-      }
-    }, messagesRef);
-    return () => ctx.revert();
-  }, [aiMessages]);
+    // Only animate if a new message was added, not if existing messages were updated
+    const isNewMessage = aiMessages.length > previousMessagesLengthRef.current;
+    previousMessagesLengthRef.current = aiMessages.length;
+    
+    if (isNewMessage && messagesRef.current) {
+      const ctx = gsap.context(() => {
+        // Only animate the last message (the new one)
+        const lastMessage = messagesRef.current?.querySelectorAll("[data-message]");
+        if (lastMessage && lastMessage.length > 0) {
+          const newMessageElement = lastMessage[lastMessage.length - 1];
+          gsap.fromTo(
+            newMessageElement,
+            { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: 0.25, ease: "power1.out" }
+          );
+        }
+      }, messagesRef);
+      return () => ctx.revert();
+    }
+  }, [aiMessages.length]); // Only depend on length, not the full array
 
   // Update connection status based on chat status
   useEffect(() => {
@@ -575,11 +628,22 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
   // Initialize Cal.com API when calendar should be shown
   useEffect(() => {
     if (showCalendar && !calLoaded) {
-      (async function () {
-        const cal = await getCalApi({ namespace: "30-min-meeting" });
-        cal("ui", { hideEventTypeDetails: false, layout: "month_view" });
-        setCalLoaded(true);
-      })();
+      // Use a small delay to ensure DOM is ready
+      const initTimer = setTimeout(async () => {
+        try {
+          const cal = await getCalApi({ namespace: "30-min-meeting" });
+          if (cal) {
+            cal("ui", { hideEventTypeDetails: false, layout: "month_view" });
+            setCalLoaded(true);
+          }
+        } catch (error) {
+          console.error("Error initializing Cal.com:", error);
+          // Still set calLoaded to true to prevent infinite retries
+          setCalLoaded(true);
+        }
+      }, 100);
+      
+      return () => clearTimeout(initTimer);
     }
   }, [showCalendar, calLoaded]);
 
@@ -644,6 +708,43 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     });
   }, [aiMessages]);
 
+  // Re-initialize Cal.com when a calendar message appears in the DOM
+  useEffect(() => {
+    // Check if any message has showCalendar flag
+    const hasCalendarMessage = messages.some(msg => msg.showCalendar);
+    if (hasCalendarMessage && showCalendar && !calLoaded) {
+      // Wait for the calendar wrapper to be in the DOM
+      const checkTimer = setInterval(async () => {
+        // Use a more specific selector to find the calendar wrapper
+        const calendarCard = document.querySelector(`[data-calendar-card]`);
+        const calendarWrapper = calendarCard?.querySelector('div[class*="calendarWrapper"]') as HTMLElement;
+        if (calendarWrapper && calendarWrapper.offsetHeight > 0) {
+          clearInterval(checkTimer);
+          try {
+            const cal = await getCalApi({ namespace: "30-min-meeting" });
+            if (cal) {
+              cal("ui", { hideEventTypeDetails: false, layout: "month_view" });
+              setCalLoaded(true);
+            }
+          } catch (error) {
+            console.error("Error initializing Cal.com:", error);
+            setCalLoaded(true);
+          }
+        }
+      }, 200);
+      
+      // Cleanup after 5 seconds
+      const timeout = setTimeout(() => {
+        clearInterval(checkTimer);
+      }, 5000);
+      
+      return () => {
+        clearInterval(checkTimer);
+        clearTimeout(timeout);
+      };
+    }
+  }, [messages, showCalendar, calLoaded]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Proyectos desde el perfil (para el carousel)
@@ -694,6 +795,36 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     }, 50);
     return () => clearTimeout(timeoutId);
   }, [messages, scrollToBottom]);
+
+  /**
+   * Check if there's scrollable content and show scroll indicator
+   */
+  useEffect(() => {
+    const checkScroll = () => {
+      if (messagesAreaRef.current) {
+        const container = messagesAreaRef.current;
+        const hasScroll = container.scrollHeight > container.clientHeight;
+        const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+        setShowScrollIndicator(hasScroll && !isAtBottom);
+      }
+    };
+
+    // Check on mount and when messages change
+    checkScroll();
+
+    // Check on scroll
+    const container = messagesAreaRef.current;
+    if (container) {
+      container.addEventListener('scroll', checkScroll);
+      // Also check on resize
+      window.addEventListener('resize', checkScroll);
+      
+      return () => {
+        container.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+      };
+    }
+  }, [messages]);
 
 
   /**
@@ -967,7 +1098,7 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       )}
 
       {/* Messages area */}
-      <div className={styles.messagesArea}>
+      <div ref={messagesAreaRef} className={styles.messagesArea}>
         {displayMessages.length === 0 ? (
           <div className={styles.emptyState}>
             <p>No hay mensajes aún. Escribe algo para comenzar.</p>
@@ -993,10 +1124,11 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
                     styles.messageContent,
                     message.role === "user" ? styles.userContent : styles.assistantContent
                   )}>
-                    {message.role === "user" 
-                      ? message.content 
-                      : parseMarkdown(message.content)
-                    }
+                    <MemoizedMessageContent 
+                      content={message.content} 
+                      role={message.role} 
+                      messageId={message.id}
+                    />
                   </div>
                 </div>
                 
@@ -1018,16 +1150,20 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
                 
                 {/* Calendar - separate card */}
                 {(message.showCalendar || (showCalendar && message.role === "assistant" && message.id === aiMessages[aiMessages.length - 1]?.id)) && (
-                  <div className={styles.componentCard} data-message>
+                  <div className={styles.componentCard} data-message data-calendar-card>
                     <div className={styles.componentLabel}>📅 Reservar una cita</div>
                     <div className={styles.calendarWrapper}>
-                      {calLoaded && (
+                      {calLoaded ? (
                         <Cal
                           namespace="30-min-meeting"
                           calLink="sbarker/30-min-meeting"
-                          style={{ width: "100%", height: "100%", overflow: "scroll" }}
+                          style={{ width: "100%", height: "100%", minHeight: "400px" }}
                           config={{ layout: "month_view" }}
                         />
+                      ) : (
+                        <div className={styles.calendarLoading}>
+                          <p>Cargando calendario...</p>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1084,6 +1220,13 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
           <Send className="h-4 w-4" />
         </Button>
       </form>
+
+      {/* Scroll indicator - below input, subtle and minimalistic */}
+      {showScrollIndicator && (
+        <div className={styles.scrollIndicator} onClick={scrollToBottom} aria-label="Desplazar hacia abajo">
+          <ChevronDown className={styles.scrollIndicatorIcon} />
+        </div>
+      )}
     </div>
   );
 }
