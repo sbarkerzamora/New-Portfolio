@@ -58,37 +58,52 @@ function HomeContent() {
 
   // Entrance animations for avatar and footer using GSAP
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      if (avatarRef.current) {
-        gsap.from(avatarRef.current, {
-          opacity: 0,
-          scale: 0.85,
-          y: -12,
-          duration: 0.6,
-          ease: "power2.out",
-          delay: 0.15,
-        });
-      }
-      if (headerRef.current) {
-        gsap.from(headerRef.current, {
-          opacity: 0,
-          y: -10,
-          duration: 0.5,
-          ease: "power1.out",
-        });
-      }
-      if (footerRef.current) {
-        gsap.from(footerRef.current, {
-          opacity: 0,
-          y: 12,
-          duration: 0.6,
-          ease: "power1.out",
-          delay: 0.25,
-        });
-      }
-    });
+    // Small delay to ensure DOM is ready and prevent hydration issues
+    let ctx: gsap.Context | null = null;
+    const timer = setTimeout(() => {
+      ctx = gsap.context(() => {
+        if (avatarRef.current) {
+          // Reset any inline styles first
+          gsap.set(avatarRef.current, { clearProps: "all" });
+          gsap.from(avatarRef.current, {
+            opacity: 0,
+            scale: 0.85,
+            y: -12,
+            duration: 0.6,
+            ease: "power2.out",
+            delay: 0.15,
+          });
+        }
+        if (headerRef.current) {
+          // Reset any inline styles first, then animate
+          gsap.set(headerRef.current, { clearProps: "all" });
+          gsap.from(headerRef.current, {
+            opacity: 0,
+            y: -10,
+            duration: 0.5,
+            ease: "power1.out",
+          });
+        }
+        if (footerRef.current) {
+          // Reset any inline styles first
+          gsap.set(footerRef.current, { clearProps: "all" });
+          gsap.from(footerRef.current, {
+            opacity: 0,
+            y: 12,
+            duration: 0.6,
+            ease: "power1.out",
+            delay: 0.25,
+          });
+        }
+      });
+    }, 100); // Small delay to ensure hydration is complete
 
-    return () => ctx.revert();
+    return () => {
+      clearTimeout(timer);
+      if (ctx) {
+        ctx.revert();
+      }
+    };
   }, []);
 
   /**

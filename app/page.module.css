@@ -101,6 +101,22 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(16px);
+  /* Ensure header is visible by default - GSAP will animate from this */
+  opacity: 1;
+  visibility: visible;
+  /* Fallback animation if GSAP doesn't load */
+  animation: headerFadeIn 0.5s ease-out;
+}
+
+@keyframes headerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .headerLeft {
