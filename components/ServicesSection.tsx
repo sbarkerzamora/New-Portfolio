@@ -97,18 +97,42 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
     );
   }
 
+  // Debug: log carousel state and container dimensions
+  useEffect(() => {
+    if (containerRef.current) {
+      const container = containerRef.current.closest(`.${styles.imageContainer}`) as HTMLElement | null;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        console.log(`📐 Container dimensions [${alt}]:`, {
+          width: rect.width,
+          height: rect.height,
+          carouselWidth: containerRef.current.offsetWidth,
+          carouselHeight: containerRef.current.offsetHeight,
+        });
+      }
+    }
+    
+    console.log(`🎠 ImageCarousel [${alt}]:`, {
+      totalImages: images.length,
+      currentIndex,
+      imageSrcs: images.map((src) => src.trim().startsWith('/') ? src.trim() : `/${src.trim()}`),
+    });
+  }, [alt, images, currentIndex]);
+
   return (
     <div ref={containerRef} className={styles.simpleCarousel}>
       {/* Images */}
       <div className={styles.slidesContainer}>
         {images.map((src, index) => {
           const imageSrc = src.trim().startsWith('/') ? src.trim() : `/${src.trim()}`;
+          const isActive = index === currentIndex;
+          
           return (
             <div
               key={`${imageSrc}-${index}`}
               className={cn(
                 styles.slide,
-                index === currentIndex && styles.slideActive
+                isActive && styles.slideActive
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -117,6 +141,26 @@ function ImageCarousel({ images, alt }: { images: string[]; alt: string }) {
                 alt={`${alt} - imagen ${index + 1}`}
                 className={styles.slideImage}
                 loading={index === 0 ? "eager" : "lazy"}
+                onLoad={(e) => {
+                  const img = e.currentTarget;
+                  console.log(`✅ Image loaded [${alt}]:`, {
+                    index,
+                    src: imageSrc,
+                    naturalWidth: img.naturalWidth,
+                    naturalHeight: img.naturalHeight,
+                    currentSrc: img.currentSrc,
+                    isActive,
+                  });
+                }}
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  console.error(`❌ Image failed [${alt}]:`, {
+                    index,
+                    src: imageSrc,
+                    attemptedSrc: img.src,
+                    currentSrc: img.currentSrc,
+                  });
+                }}
               />
             </div>
           );
