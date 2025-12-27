@@ -7,16 +7,17 @@
  * Allows users to toggle theme (dark/light) and language (es/en).
  * 
  * Features:
- * - Smooth slide-up animation
+ * - Smooth slide-up/down animations
  * - Backdrop with blur effect
+ * - Save button with visual feedback
  * - Keyboard accessible (Escape to close)
  * - Respects prefers-reduced-motion
  * 
  * @module components/SettingsDrawer
  */
 
-import React, { useEffect, useRef, useCallback } from "react";
-import { X, Sun, Moon, Globe } from "lucide-react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
+import { X, Sun, Moon, Globe, Settings, Check } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
@@ -32,30 +33,40 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
   const { language, setLanguage, t } = useLanguage();
   const drawerRef = useRef<HTMLDivElement>(null);
   const firstFocusableRef = useRef<HTMLButtonElement>(null);
+  const [isClosing, setIsClosing] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+
+  // Handle close with animation
+  const handleClose = useCallback(() => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      onClose();
+    }, 300); // Match animation duration
+  }, [onClose]);
 
   // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
+      if (e.key === "Escape" && isOpen && !isClosing) {
+        handleClose();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, isClosing, handleClose]);
 
   // Focus trap and focus first element when opened
   useEffect(() => {
-    if (isOpen && firstFocusableRef.current) {
-      // Use requestAnimationFrame to ensure DOM is ready
+    if (isOpen && !isClosing && firstFocusableRef.current) {
       requestAnimationFrame(() => {
         if (firstFocusableRef.current) {
           firstFocusableRef.current.focus();
         }
       });
     }
-  }, [isOpen]);
+  }, [isOpen, isClosing]);
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -71,16 +82,29 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
 
   // Handle backdrop click
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
+    if (e.target === e.currentTarget && !isClosing) {
+      handleClose();
     }
-  }, [onClose]);
+  }, [handleClose, isClosing]);
 
-  if (!isOpen) return null;
+  // Handle save with visual feedback
+  const handleSave = useCallback(() => {
+    setShowSaved(true);
+    setTimeout(() => {
+      setShowSaved(false);
+      handleClose();
+    }, 600);
+  }, [handleClose]);
+
+  if (!isOpen && !isClosing) return null;
 
   return (
     <div 
-      className={styles.backdrop} 
+      className={cn(
+        styles.backdrop,
+        isOpen && !isClosing && styles.backdropOpen,
+        isClosing && styles.backdropClosing
+      )} 
       onClick={handleBackdropClick}
       aria-modal="true"
       role="dialog"
@@ -88,21 +112,43 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
     >
       <div 
         ref={drawerRef}
-        className={cn(styles.drawer, isOpen && styles.drawerOpen)}
+        className={cn(
+          styles.drawer,
+          isOpen && !isClosing && styles.drawerOpen,
+          isClosing && styles.drawerClosing
+        )}
       >
+        {/* Handle indicator */}
+        <div className={styles.handleIndicator} aria-hidden="true" />
+        
         {/* Header */}
         <div className={styles.header}>
-          <h2 id="settings-title" className={styles.title}>
-            {t("settings.title")}
-          </h2>
-          <button
-            ref={firstFocusableRef}
-            onClick={onClose}
-            className={styles.closeButton}
-            aria-label={t("ui.close")}
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className={styles.headerLeft}>
+            <div className={styles.titleIcon}>
+              <Settings />
+            </div>
+            <h2 id="settings-title" className={styles.title}>
+              {t("settings.title")}
+            </h2>
+          </div>
+          <div className={styles.headerActions}>
+            <button
+              onClick={handleSave}
+              className={cn(styles.iconButton, styles.saveButton)}
+              aria-label={t("ui.save")}
+              title={t("ui.save")}
+            >
+              {showSaved ? <Check /> : <Check />}
+            </button>
+            <button
+              ref={firstFocusableRef}
+              onClick={handleClose}
+              className={styles.iconButton}
+              aria-label={t("ui.close")}
+            >
+              <X />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -121,7 +167,7 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
                 )}
                 aria-pressed={theme === "light"}
               >
-                <Sun className="h-4 w-4" />
+                <Sun />
                 <span>{t("settings.themeLight")}</span>
               </button>
               <button
@@ -132,7 +178,7 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
                 )}
                 aria-pressed={theme === "dark"}
               >
-                <Moon className="h-4 w-4" />
+                <Moon />
                 <span>{t("settings.themeDark")}</span>
               </button>
             </div>
@@ -141,7 +187,7 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
           {/* Language toggle */}
           <div className={styles.settingGroup}>
             <label className={styles.settingLabel}>
-              <Globe className="h-4 w-4" />
+              <Globe />
               {t("settings.language")}
             </label>
             <div className={styles.toggleGroup}>
@@ -171,10 +217,13 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
           </div>
         </div>
 
-        {/* Handle indicator */}
-        <div className={styles.handleIndicator} aria-hidden="true" />
+        {/* Footer */}
+        <div className={styles.footer}>
+          <p className={styles.footerText}>
+            {t("settings.autoSave")}
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-

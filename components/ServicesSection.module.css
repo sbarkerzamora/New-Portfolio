@@ -485,3 +485,102 @@
 .slideImage {
   transition: opacity 0.3s ease;
 }
+
+/* ========================================
+   LIGHT THEME OVERRIDES
+   ======================================== */
+
+:global(.light) .section {
+  background: linear-gradient(180deg, 
+    rgba(248, 250, 252, 0.8) 0%, 
+    rgba(255, 255, 255, 0.9) 50%, 
+    rgba(248, 250, 252, 0.8) 100%
+  );
+}
+
+:global(.light) .backgroundGlow {
+  opacity: 0.3;
+  filter: blur(100px);
+}
+
+:global(.light) .eyebrow {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+  border-color: hsl(var(--primary) / 0.15);
+}
+
+:global(.light) .eyebrowSlash {
+  color: hsl(var(--primary) / 0.4);
+}
+
+:global(.light) .title {
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .description {
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+:global(.light) .card:hover {
+  border-color: hsl(var(--primary) / 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+:global(.light) .cardTitle {
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .cardDescription {
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .iconContainer {
+  background: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary) / 0.2);
+}
+
+:global(.light) .icon {
+  color: hsl(var(--primary));
+}
+
+:global(.light) .tag {
+  background: hsl(var(--primary) / 0.08);
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary) / 0.15);
+}
+
+:global(.light) .tagDot {
+  background: hsl(var(--primary));
+}
+
+:global(.light) .imageContainer {
+  background: rgba(248, 250, 252, 0.8);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+:global(.light) .navButton {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: hsl(var(--foreground));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+:global(.light) .navButton:hover {
+  background: white;
+  border-color: hsl(var(--primary) / 0.3);
+  color: hsl(var(--primary));
+}
+
+:global(.light) .dotButton {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+:global(.light) .dotButtonActive {
+  background: hsl(var(--primary));
+}

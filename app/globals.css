@@ -27,13 +27,35 @@
   --radius: 0.875rem;
   
   /* Dark theme specific */
-  --body-bg: #000000;
+  --body-bg: #050510;
   --glass-bg: rgba(255, 255, 255, 0.04);
   --glass-border: rgba(255, 255, 255, 0.06);
   --glass-shadow: rgba(0, 0, 0, 0.45);
+  
+  /* Text gradients */
+  --text-gradient-from: hsl(263 83% 68%);
+  --text-gradient-to: hsl(280 80% 75%);
+  
+  /* Surface colors */
+  --surface-elevated: rgba(255, 255, 255, 0.02);
+  --surface-overlay: rgba(0, 0, 0, 0.6);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.6);
+  
+  /* Chat specific */
+  --chat-bubble-user: rgba(138, 92, 246, 0.15);
+  --chat-bubble-assistant: rgba(255, 255, 255, 0.04);
+  
+  /* Section backgrounds */
+  --section-bg: transparent;
+  --section-bg-alt: rgba(255, 255, 255, 0.02);
 }
 
-/* Light theme */
+/* Light theme - complete redesign */
 .light {
   --background: 0 0% 100%;
   --foreground: 222 47% 11%;
@@ -41,7 +63,7 @@
   --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
-  --primary: 263 83% 58%;
+  --primary: 263 70% 50%;
   --primary-foreground: 0 0% 100%;
   --secondary: 220 14% 96%;
   --secondary-foreground: 222 47% 11%;
@@ -53,13 +75,35 @@
   --destructive-foreground: 0 0% 100%;
   --border: 220 13% 91%;
   --input: 220 13% 91%;
-  --ring: 263 83% 58%;
+  --ring: 263 70% 50%;
   
   /* Light theme specific */
-  --body-bg: #f8fafc;
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(0, 0, 0, 0.08);
-  --glass-shadow: rgba(0, 0, 0, 0.1);
+  --body-bg: #fafbfc;
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-shadow: rgba(0, 0, 0, 0.08);
+  
+  /* Text gradients */
+  --text-gradient-from: hsl(263 70% 50%);
+  --text-gradient-to: hsl(280 65% 55%);
+  
+  /* Surface colors */
+  --surface-elevated: rgba(255, 255, 255, 0.9);
+  --surface-overlay: rgba(255, 255, 255, 0.8);
+  
+  /* Shadows - softer for light mode */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.12);
+  
+  /* Chat specific */
+  --chat-bubble-user: rgba(138, 92, 246, 0.1);
+  --chat-bubble-assistant: rgba(0, 0, 0, 0.03);
+  
+  /* Section backgrounds */
+  --section-bg: rgba(255, 255, 255, 0.6);
+  --section-bg-alt: rgba(248, 250, 252, 0.8);
 }
 
 * {
@@ -70,19 +114,21 @@ body {
   @apply text-foreground antialiased;
   background: var(--body-bg);
   min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Glass effect utility */
 .glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 12px 40px var(--glass-shadow);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
-/* Light theme glass adjustments */
+/* Light theme specific glass adjustments */
 .light .glass {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 @layer base {
@@ -133,12 +179,145 @@ html.light {
   color-scheme: light;
 }
 
-/* Ensure smooth transitions for theme-aware elements */
+/* ========================================
+   LIGHT THEME COMPONENT OVERRIDES
+   ======================================== */
+
+/* Header adjustments for light mode */
+.light header {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: var(--glass-border);
+}
+
+/* Footer adjustments */
+.light footer {
+  background: rgba(255, 255, 255, 0.9);
+  border-top-color: var(--glass-border);
+}
+
+/* Card backgrounds in light mode */
+.light [class*="card"] {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+}
+
+/* Button adjustments for light mode */
+.light button[class*="ghost"] {
+  color: hsl(var(--muted-foreground));
+}
+
+.light button[class*="ghost"]:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: hsl(var(--foreground));
+}
+
+/* Input fields in light mode */
+.light input,
+.light textarea {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: hsl(var(--border));
+}
+
+.light input:focus,
+.light textarea:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}
+
+/* Scrollbar styling for light mode */
+.light ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Selection color */
+.light ::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+.dark ::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Elevated surface */
+.surface-elevated {
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-md);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--text-gradient-from), var(--text-gradient-to));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Smooth transitions for all theme-aware elements */
 *,
 *::before,
 *::after {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-  transition-duration: 0.15s;
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+/* Exclude certain elements from transitions */
+*[class*="animate"],
+*[class*="transition"],
+canvas,
+video,
+svg path,
+svg circle,
+svg rect {
+  transition-property: none;
+}
+
+/* Re-enable transitions for specific properties on these elements */
+*[class*="animate"],
+*[class*="transition"] {
+  transition-property: background-color, border-color;
+  transition-duration: 0.2s;
   transition-timing-function: ease;
 }
 
@@ -147,4 +326,21 @@ html.no-transitions *,
 html.no-transitions *::before,
 html.no-transitions *::after {
   transition: none !important;
+}
+
+/* Focus visible styles */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

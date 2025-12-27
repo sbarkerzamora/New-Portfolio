@@ -27,6 +27,7 @@ import ServicesSection from "@/components/ServicesSection";
 import AboutSection from "@/components/AboutSection";
 import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import dynamic from "next/dynamic";
 import styles from "./page.module.css";
 import Image from "next/image";
@@ -41,6 +42,12 @@ const ColorBends = dynamic(() => import("@/components/ColorBends"), {
 function HomeContent() {
   const { openCalendar } = useCalModal();
   const { t } = useLanguage();
+  const { theme } = useTheme();
+  
+  // Theme-aware colors for ColorBends background
+  const backgroundColors = theme === "light" 
+    ? ["#a78bfa", "#c4b5fd", "#ddd6fe"] // Light purple tones for light theme
+    : ["#10b981", "#34d399", "#6ee7b7"]; // Green tones for dark theme
   const chatRef = React.useRef<{ triggerContact: () => void } | null>(null);
   const [isInfoOpen, setIsInfoOpen] = React.useState(false);
   const [connectionStatus, setConnectionStatus] = React.useState<"idle" | "connecting" | "connected" | "error">("idle");
@@ -127,9 +134,9 @@ function HomeContent() {
   return (
     <div className={styles.pageContainer}>
       {/* ColorBends animated background */}
-      <div className={styles.background}>
+      <div className={cn(styles.background, theme === "light" && styles.backgroundLight)}>
         <ColorBends
-          colors={["#10b981", "#34d399", "#6ee7b7"]}
+          colors={backgroundColors}
           rotation={30}
           speed={0.3}
           scale={1.0}

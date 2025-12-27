@@ -718,3 +718,156 @@
   }
 }
 
+/* ========================================
+   LIGHT THEME OVERRIDES
+   ======================================== */
+
+:global(.light) .chatContainer {
+  background: transparent;
+}
+
+:global(.light) .messageContent {
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .userContent {
+  background: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .assistantContent {
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .messageRow {
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .messageAvatar {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+:global(.light) .inputForm {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+:global(.light) .input {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .input::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .input:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}
+
+:global(.light) .sendButton {
+  background: hsl(var(--primary));
+  color: white;
+}
+
+:global(.light) .sendButton:hover {
+  background: hsl(var(--primary) / 0.9);
+}
+
+:global(.light) .quickActions {
+  background: transparent;
+}
+
+:global(.light) .quickActionButton {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: hsl(var(--foreground));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+:global(.light) .quickActionButton:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: hsl(var(--primary) / 0.3);
+  color: hsl(var(--primary));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+:global(.light) .componentCard {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+:global(.light) .componentLabel {
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .welcomeBanner {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: hsl(var(--primary) / 0.2);
+}
+
+:global(.light) .welcomeTitle {
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .welcomeMessage {
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .welcomeIcon {
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+}
+
+:global(.light) .welcomeCloseButton {
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .welcomeCloseButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .errorMessage {
+  background: rgba(239, 68, 68, 0.1);
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.3);
+}
+
+:global(.light) .scrollIndicator {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+:global(.light) .scrollIndicator:hover {
+  background: white;
+}
+
+:global(.light) .suggestionsBar {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+:global(.light) .calendarLoading {
+  background: rgba(255, 255, 255, 0.5);
+  color: hsl(var(--muted-foreground));
+}
+
+@media (max-width: 640px) {
+  :global(.light) .inputForm {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.06);
+  }
+
+  :global(.light) .suggestionsBar {
+    background: rgba(255, 255, 255, 0.95);
+  }
+}
+

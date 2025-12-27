@@ -39,6 +39,25 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  transition: opacity 0.5s ease;
+}
+
+/* Light theme: reduce background opacity and add overlay */
+.backgroundLight {
+  opacity: 0.4;
+}
+
+.backgroundLight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(250, 251, 252, 0.7) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(250, 251, 252, 0.7) 100%
+  );
+  pointer-events: none;
 }
 
 .background > div {
@@ -406,6 +425,73 @@
   .header {
     margin: 1.5rem;
     padding: 1rem 1.5rem;
+  }
+}
+
+/* ========================================
+   LIGHT THEME OVERRIDES
+   ======================================== */
+
+:global(.light) .header {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+:global(.light) .headerTitle {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+:global(.light) .headerInfoButton {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+:global(.light) .headerInfoButton:hover {
+  color: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+:global(.light) .headerAvatarWrap {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+:global(.light) .footer {
+  background: rgba(255, 255, 255, 0.9);
+  border-top-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+}
+
+:global(.light) .footerContent {
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .bookingButton {
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .bookingButton:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: hsl(var(--primary));
+}
+
+:global(.light) .footerLink {
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .footerLink:hover {
+  color: hsl(var(--primary));
+}
+
+@media (max-width: 640px) {
+  :global(.light) .header {
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  :global(.light) .footer {
+    background: rgba(255, 255, 255, 0.95);
+    border-top-color: rgba(0, 0, 0, 0.08);
   }
 }
 

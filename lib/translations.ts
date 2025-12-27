@@ -22,6 +22,7 @@ export const translations = {
       placeholder: "Escribe tu mensaje...",
       send: "Enviar mensaje",
       close: "Cerrar",
+      save: "Guardar",
       download: "Descargar",
       downloadCV: "Descargar CV",
       bookAppointment: "Reservar una cita",
@@ -49,6 +50,7 @@ export const translations = {
       language: "Idioma",
       languageEs: "Español",
       languageEn: "English",
+      autoSave: "Los cambios se guardan automáticamente",
     },
     
     // Quick actions
@@ -249,6 +251,7 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       placeholder: "Type your message...",
       send: "Send message",
       close: "Close",
+      save: "Save",
       download: "Download",
       downloadCV: "Download CV",
       bookAppointment: "Book an appointment",
@@ -276,6 +279,7 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
       language: "Language",
       languageEs: "Español",
       languageEn: "English",
+      autoSave: "Changes are saved automatically",
     },
     
     // Quick actions
