@@ -235,6 +235,14 @@ He trabajado en proyectos como Tu Menú Digital (una plataforma completa para re
 
 Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría saber? Puedes preguntarme sobre mis proyectos, tecnologías que uso, mi experiencia, o cualquier cosa que te interese. ¡Estoy aquí para conversar! 😊`,
     },
+    
+    // 404 Page
+    notFound: {
+      title: "404",
+      subtitle: "Página no encontrada",
+      description: "Lo sentimos, la página que buscas no existe o ha sido movida.",
+      backHome: "Volver al inicio",
+    },
   },
   
   en: {
@@ -463,6 +471,14 @@ I have over 8 years transforming ideas into digital products that actually work.
 I've worked on projects like Tu Menú Digital (a complete platform for restaurants), Polygon CRM, and several corporate sites. My favorite stack includes Next.js, TypeScript, and Supabase, but I also master WordPress when the situation requires it.
 
 This is my personal space where you can get to know me better. What would you like to know? You can ask me about my projects, technologies I use, my experience, or anything that interests you. I'm here to chat! 😊`,
+    },
+    
+    // 404 Page
+    notFound: {
+      title: "404",
+      subtitle: "Page not found",
+      description: "Sorry, the page you're looking for doesn't exist or has been moved.",
+      backHome: "Back to home",
     },
   },
 } as const;

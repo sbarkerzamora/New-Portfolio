@@ -7,8 +7,10 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@react-pdf/renderer"],
   // Configuración de Turbopack (Next.js 16 usa Turbopack por defecto)
   turbopack: {
-    // Configuración vacía para silenciar el warning
-    // El dynamic import con ssr: false es suficiente para Three.js
+    // Configuración para resolver problemas con espacios en rutas
+    resolveAlias: {},
+    // Silenciar el warning sobre múltiples lockfiles
+    root: process.cwd(),
   },
 };
 

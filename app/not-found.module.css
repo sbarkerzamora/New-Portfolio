@@ -1,0 +1,441 @@
+/**
+ * 404 Not Found Page Styles
+ * 
+ * Theme-aware styling matching the site's design system:
+ * - ColorBends animated background (same as homepage)
+ * - Glassmorphism effects
+ * - Neue Metana typography for large 404
+ * - Emerald/green accents for dark theme
+ * - Purple accents for light theme
+ */
+
+.container {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--body-bg);
+  padding: 1.5rem;
+}
+
+.containerLight {
+  background: var(--body-bg);
+}
+
+/* ColorBends background - matching homepage */
+.background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  pointer-events: none;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  transition: opacity 0.5s ease;
+}
+
+/* Light theme: reduce background opacity and add overlay */
+.backgroundLight {
+  opacity: 0.4;
+}
+
+.backgroundLight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(250, 251, 252, 0.7) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(250, 251, 252, 0.7) 100%
+  );
+  pointer-events: none;
+}
+
+.background > div {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.background canvas {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Main content */
+.content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Glassmorphism card - matching site design */
+.contentCard {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  width: 100%;
+  padding: 3rem 2.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.light .contentCard {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Title wrapper for Shuffle component */
+.titleWrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.shuffleText {
+  font-size: clamp(10rem, 30vw, 20rem);
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 1),
+    rgba(52, 211, 153, 0.8),
+    rgba(110, 231, 183, 0.6)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  font-family: var(--font-neue-metana, sans-serif);
+}
+
+.shuffleTextLight {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary)),
+    hsl(var(--primary) / 0.75),
+    hsl(var(--primary) / 0.5)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 60px hsl(var(--primary) / 0.2);
+  filter: drop-shadow(0 0 30px hsl(var(--primary) / 0.15));
+}
+
+/* Small 404 above subtitle with shuffle effect */
+.small404Wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: -0.5rem;
+  position: relative;
+  z-index: 10;
+  min-height: 70px;
+  align-items: center;
+}
+
+/* Outer wrapper that always shows the text */
+.small404Text {
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-align: center;
+  font-family: var(--font-neue-metana), sans-serif;
+  color: rgba(16, 185, 129, 1); /* Fallback color - always visible */
+  display: inline-block;
+  position: relative;
+  min-width: 120px;
+  min-height: 60px;
+}
+
+/* Gradient background using pseudo-element */
+.small404Text::before {
+  content: "404";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 1),
+    rgba(52, 211, 153, 0.8)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  font-family: inherit;
+  z-index: 0;
+  opacity: 1;
+  pointer-events: none;
+}
+
+.small404TextLight {
+  color: hsl(var(--primary)); /* Fallback color */
+}
+
+.small404TextLight::before {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary)),
+    hsl(var(--primary) / 0.75)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Inner Shuffle component - inherits styles from parent */
+.small404ShuffleInner {
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  text-transform: none !important;
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 1),
+    rgba(52, 211, 153, 0.8)
+  ) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-family: inherit !important;
+  color: rgba(16, 185, 129, 1) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: inline-block !important;
+  position: relative;
+  z-index: 1;
+}
+
+.light .small404ShuffleInner {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--primary)),
+    hsl(var(--primary) / 0.75)
+  ) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  color: hsl(var(--primary)) !important;
+}
+
+/* Fallback text - always visible behind Shuffle */
+.small404Fallback {
+  display: none; /* Hidden by default, only shown if needed */
+}
+
+/* Subtitle - matching site typography */
+.subtitle {
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 700;
+  color: hsl(var(--foreground));
+  margin: 0;
+  opacity: 0.95;
+  animation: fadeIn 0.8s ease-out 0.2s both;
+  font-family: var(--font-neue-metana), sans-serif;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.subtitleLight {
+  color: hsl(var(--foreground));
+  opacity: 0.9;
+}
+
+/* Description */
+.description {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: hsl(var(--muted-foreground));
+  line-height: 1.6;
+  margin: 0;
+  max-width: 550px;
+  animation: fadeIn 0.8s ease-out 0.4s both;
+  font-family: var(--font-geist-sans, sans-serif);
+}
+
+.descriptionLight {
+  color: hsl(var(--muted-foreground));
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Back button - matching site button style with emerald green for dark theme */
+.backButton {
+  margin-top: 0.5rem;
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeIn 0.8s ease-out 0.6s both;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.9);
+  color: white;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(16, 185, 129, 0.2) inset,
+    0 0 20px rgba(16, 185, 129, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.backButton::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.backButton:hover {
+  background: rgba(16, 185, 129, 1);
+  border-color: rgba(16, 185, 129, 0.5);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(16, 185, 129, 0.3) inset,
+    0 0 30px rgba(16, 185, 129, 0.3);
+}
+
+.backButton:hover::before {
+  left: 100%;
+}
+
+.backButton:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Light theme - use primary purple color */
+.backButtonLight {
+  border-color: hsl(var(--primary) / 0.3);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 0 0 1px hsl(var(--primary) / 0.2) inset,
+    0 0 20px hsl(var(--primary) / 0.15);
+}
+
+.backButtonLight:hover {
+  background: hsl(var(--primary) / 0.9);
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 
+    0 6px 20px rgba(0, 0, 0, 0.15),
+    0 0 0 1px hsl(var(--primary) / 0.3) inset,
+    0 0 30px hsl(var(--primary) / 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .contentCard {
+    padding: 2.5rem 2rem;
+    gap: 1.5rem;
+    border-radius: 1.25rem;
+  }
+
+  .shuffleText {
+    font-size: clamp(10rem, 25vw, 18rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem;
+  }
+
+  .contentCard {
+    padding: 2rem 1.5rem;
+    gap: 1.25rem;
+    border-radius: 1rem;
+  }
+
+  .shuffleText {
+    font-size: clamp(8rem, 20vw, 14rem);
+  }
+
+  .backButton {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .content,
+  .subtitle,
+  .description,
+  .backButton {
+    animation: none;
+  }
+}
+
