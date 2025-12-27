@@ -16,7 +16,7 @@
  * @module app/page
  */
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { Info, Calendar, Download } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ import DecryptedText from "@/components/DecryptedText";
 import InfoModal from "@/components/InfoModal";
 import ServicesSection from "@/components/ServicesSection";
 import AboutSection from "@/components/AboutSection";
+import CurvedLoop from "@/components/CurvedLoop";
 import { CalModalProvider, useCalModal } from "@/contexts/CalModalContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -32,6 +33,7 @@ import dynamic from "next/dynamic";
 import styles from "./page.module.css";
 import Image from "next/image";
 import gsap from "gsap";
+import profileData from "@/docs/profile.json";
 
 // Dynamic import para ColorBends (solo cliente, no SSR)
 const ColorBends = dynamic(() => import("@/components/ColorBends"), {
@@ -48,6 +50,21 @@ function HomeContent() {
   const backgroundColors = theme === "light" 
     ? ["#a78bfa", "#c4b5fd", "#ddd6fe"] // Light purple tones for light theme
     : ["#10b981", "#34d399", "#6ee7b7"]; // Green tones for dark theme
+
+  // Build tech stack string from profile data
+  const techStackText = useMemo(() => {
+    const stack = profileData.stack_tecnologico;
+    const allTechs = [
+      ...(stack.frontend_moderno || []),
+      ...(stack.backend_y_datos || []),
+      ...(stack.devops_e_infraestructura || []),
+      ...(stack.pagos_y_comercio || []),
+      ...(stack.herramientas_y_flujo || []),
+    ];
+    // Remove duplicates and format with separator
+    const uniqueTechs = Array.from(new Set(allTechs));
+    return uniqueTechs.join(" ✦ ");
+  }, []);
   const chatRef = React.useRef<{ triggerContact: () => void } | null>(null);
   const [isInfoOpen, setIsInfoOpen] = React.useState(false);
   const [connectionStatus, setConnectionStatus] = React.useState<"idle" | "connecting" | "connected" | "error">("idle");
@@ -231,6 +248,19 @@ function HomeContent() {
 
       {/* Services Section - Second viewport */}
       <ServicesSection />
+
+      {/* Tech Stack Curved Loop Section */}
+      <section className={styles.techStackSection} aria-label="Stack tecnológico">
+        <CurvedLoop
+          marqueeText={techStackText}
+          speed={2}
+          curveAmount={400}
+          direction="right"
+          interactive={true}
+          responsive={true}
+          className={theme === "light" ? "fill-gray-900" : "fill-white"}
+        />
+      </section>
 
       {/* About Section - Third viewport */}
       <AboutSection />
