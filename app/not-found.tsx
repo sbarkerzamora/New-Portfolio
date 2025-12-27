@@ -27,7 +27,6 @@ import Shuffle from "@/components/Shuffle";
 import ColorBends from "@/components/ColorBends";
 import styles from "./not-found.module.css";
 import { cn } from "@/lib/utils";
-import dynamic from "next/dynamic";
 
 export default function NotFound() {
   const { theme } = useTheme();
