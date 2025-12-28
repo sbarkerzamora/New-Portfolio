@@ -5,7 +5,7 @@
  * Features smooth open/close animations with backdrop blur.
  */
 
-/* Backdrop with blur */
+/* Backdrop with blur - semi-transparent to see background content */
 .backdrop {
   position: fixed;
   inset: 0;
@@ -13,11 +13,11 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   opacity: 0;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .backdropOpen {
@@ -37,42 +37,50 @@
   margin-bottom: 1rem;
   padding: 0;
   border-radius: 1.25rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: hsl(var(--card) / 0.95);
+  border: 1px solid hsl(var(--border) / 0.3);
   box-shadow: 
-    0 -8px 32px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  transform: translateY(100%) scale(0.95);
+    0 -8px 32px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 20px 60px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  transform: translateY(100%) scale(0.96) translateZ(0);
   opacity: 0;
+  will-change: transform, opacity;
   transition: 
-    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
 }
 
 .drawerOpen {
-  transform: translateY(0) scale(1);
+  transform: translateY(0) scale(1) translateZ(0);
   opacity: 1;
 }
 
 .drawerClosing {
-  transform: translateY(100%) scale(0.95);
+  transform: translateY(100%) scale(0.96) translateZ(0);
   opacity: 0;
+  transition: 
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Light theme adjustments */
 :global(.light) .drawer {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: hsl(var(--card) / 0.95);
+  border-color: hsl(var(--border) / 0.3);
   box-shadow: 
-    0 -8px 32px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(0, 0, 0, 0.03) inset;
+    0 -8px 32px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(0, 0, 0, 0.03) inset,
+    0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
 :global(.light) .backdrop {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
 
 /* Handle indicator at top */
@@ -173,12 +181,21 @@
   color: hsl(var(--primary));
 }
 
-/* Content area */
+/* Content area - with blur and subtle darker background */
 .content {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   padding: 1.25rem;
+  background: linear-gradient(
+    to bottom,
+    hsl(var(--muted) / 0.2),
+    hsl(var(--muted) / 0.35)
+  );
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border-radius: 0 0 1.25rem 1.25rem;
+  border-top: 1px solid hsl(var(--border) / 0.2);
 }
 
 /* Setting group */

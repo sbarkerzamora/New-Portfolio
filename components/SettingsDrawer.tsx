@@ -42,7 +42,7 @@ export default function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps)
     setTimeout(() => {
       setIsClosing(false);
       onClose();
-    }, 300); // Match animation duration
+    }, 350); // Match animation duration (0.35s)
   }, [onClose]);
 
   // Handle escape key
