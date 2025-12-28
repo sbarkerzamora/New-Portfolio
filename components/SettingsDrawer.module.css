@@ -45,7 +45,7 @@
     0 20px 60px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  transform: translateY(100%) scale(0.96) translateZ(0);
+  transform: translateY(calc(100% + 1rem)) scale(0.96) translateZ(0);
   opacity: 0;
   will-change: transform, opacity;
   transition: 
@@ -54,13 +54,24 @@
   overflow: hidden;
 }
 
-.drawerOpen {
-  transform: translateY(0) scale(1) translateZ(0);
-  opacity: 1;
+/* Animation keyframes for drawer entrance */
+@keyframes drawerSlideUp {
+  from {
+    transform: translateY(calc(100% + 1rem)) scale(0.96) translateZ(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1) translateZ(0);
+    opacity: 1;
+  }
+}
+
+.drawer.drawerOpen {
+  animation: drawerSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .drawerClosing {
-  transform: translateY(100%) scale(0.96) translateZ(0);
+  transform: translateY(calc(100% + 1rem)) scale(0.96) translateZ(0);
   opacity: 0;
   transition: 
     transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
@@ -325,6 +336,15 @@
     margin: 0;
     border-radius: 1.25rem 1.25rem 0 0;
     margin-bottom: 0;
+    transform: translateY(100%) scale(0.96) translateZ(0);
+  }
+  
+  .drawerOpen {
+    transform: translateY(0) scale(1) translateZ(0);
+  }
+  
+  .drawerClosing {
+    transform: translateY(100%) scale(0.96) translateZ(0);
   }
 
   .content {

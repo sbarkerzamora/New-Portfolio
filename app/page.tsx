@@ -296,7 +296,7 @@ function HomeContent() {
       <section className={styles.techStackSection} aria-label="Stack tecnológico">
         <CurvedLoop
           marqueeText={techStackText}
-          speed={3.5}
+          speed={5}
           curveAmount={400}
           direction="right"
           interactive={true}
