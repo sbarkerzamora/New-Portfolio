@@ -28,7 +28,7 @@ A modern, interactive portfolio website featuring an AI-powered chat interface. 
 ## 📋 Prerequisites
 
 - Node.js 20 or higher
-- npm, yarn, or pnpm
+- Bun 1.0 or higher
 - API key from your chosen LLM provider:
   - **OpenRouter** (recommended): Get your API key from [OpenRouter](https://openrouter.ai/keys)
   - **OpenAI**: Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
@@ -46,11 +46,7 @@ cd New-Portfolio-Astro
 ### 2. Install dependencies
 
 ```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
+bun install
 ```
 
 ### 3. Set up environment variables
@@ -111,11 +107,7 @@ Edit `docs/profile.json` with your own information:
 ### 5. Run the development server
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+bun run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -173,7 +165,7 @@ To add support for additional providers (e.g., Anthropic, Google, etc.):
 
 1. Install the provider's SDK package:
    ```bash
-   npm install @ai-sdk/anthropic  # Example for Anthropic
+   bun add @ai-sdk/anthropic  # Example for Anthropic
    ```
 
 2. Edit `app/api/chat/route.ts` and add a new case in the `getLLMModel()` function:
@@ -199,8 +191,8 @@ The code is well-documented with comments explaining how to add new providers. S
 ## 📦 Building for Production
 
 ```bash
-npm run build
-npm run start
+bun run build
+bun run start
 ```
 
 ### Environment Variables in Production
@@ -286,9 +278,9 @@ docker run -p 3000:3000 \
    - Validate and sanitize all user inputs
 
 5. **Dependencies:**
-   - Regularly update dependencies: `npm audit` and `npm update`
-   - Review security advisories for packages
-   - Use `npm ci` in production for reproducible builds
+- Regularly update dependencies: `bun audit` and `bun update`
+- Review security advisories for packages
+- Use `bun install --frozen-lockfile` in production for reproducible builds
 
 ### Checklist Before Deployment
 
@@ -358,9 +350,8 @@ Modify the system prompt in `app/api/chat/route.ts` in the `buildSystemPrompt()`
 ## 🧪 Testing
 
 ```bash
-npm run test
-# or
-npm run test:ui  # For visual test UI
+bun run test
+bun run test:ui  # For visual test UI
 ```
 
 ## 📄 License
