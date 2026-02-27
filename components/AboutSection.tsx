@@ -76,7 +76,7 @@ export default function AboutSection() {
       aria-labelledby="about-title"
       id="acerca-de"
     >
-      {enableBlast && (
+      {enableBlast && isVisible && (
         <div className={styles.pixelBlast}>
           <PixelBlast
             variant="circle"
