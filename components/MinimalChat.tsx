@@ -534,21 +534,26 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
     });
   }, []);
 
-  // Get a short, random initial message based on current language
-  const initialMessage = useMemo(() => {
+  // Pool of short welcome messages (same on server and client for hydration)
+  const welcomePool = useMemo(() => {
     const langTranslations = translations[language as "es" | "en"];
     const variants = (langTranslations as any)?.chat?.initialMessagesShort as string[] | undefined;
-
-    const pool =
-      variants && Array.isArray(variants) && variants.length > 0
-        ? variants
-        : [t("chat.initialMessage")];
-
-    const randomIndex = Math.floor(Math.random() * pool.length);
-    return pool[randomIndex];
+    return variants && Array.isArray(variants) && variants.length > 0
+      ? variants
+      : [t("chat.initialMessage")];
   }, [language, t]);
 
-  // Use AI SDK for chat functionality
+  // Stable initial message for SSR/first paint (avoids hydration mismatch from Math.random)
+  const stableInitialMessage = welcomePool[0];
+  const [initialMessageText, setInitialMessageText] = useState(stableInitialMessage);
+
+  // After hydration, pick a random welcome message so each load feels different
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * welcomePool.length);
+    setInitialMessageText(welcomePool[randomIndex]);
+  }, [welcomePool]);
+
+  // Use AI SDK for chat functionality (pass stable message so useChat state is deterministic)
   const { messages: aiMessages, sendMessage, error: aiError, status } = useChat({
     transport,
     messages: [{
@@ -556,7 +561,7 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
       role: "assistant",
       parts: [{
         type: "text",
-        text: initialMessage,
+        text: stableInitialMessage,
       }],
     }],
   });
@@ -630,8 +635,9 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
   // Convert AI SDK messages to our Message format
   const messages = useMemo(() => {
     return aiMessages.map((msg, index) => {
-      // Extract text content from parts
-      const content = getMessageText(msg);
+      // Extract text content from parts; use our state for initial message (allows random after hydration)
+      const rawContent = getMessageText(msg);
+      const content = msg.id === "initial-1" ? initialMessageText : rawContent;
       
       // For assistant messages, check the previous user message to understand context
       let userQuery = "";
@@ -679,14 +685,14 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
       return {
         id: msg.id,
         role: msg.role as "user" | "assistant",
-        content: content,
+        content,
         timestamp: (msg as any).createdAt?.getTime() ?? Date.now(),
         showProjects,
         showTechnologies,
         showCalendar: msg.role === "assistant" && msg.id !== "initial-1" && userAskedContact,
       };
     });
-  }, [aiMessages]);
+  }, [aiMessages, initialMessageText]);
 
   // Re-initialize Cal.com when a calendar message appears in the DOM
   useEffect(() => {
