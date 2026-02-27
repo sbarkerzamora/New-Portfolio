@@ -237,6 +237,7 @@ export const translations = {
     
     // Initial chat message
     chat: {
+      // Mensaje largo original (se mantiene para usos futuros)
       initialMessage: `¡Hola! 👋 Soy Stephan Barker.
 
 Tengo más de 8 años transformando ideas en productos digitales que realmente funcionan. Me apasiona encontrar ese punto perfecto entre la velocidad del desarrollo y la calidad del código.
@@ -244,6 +245,13 @@ Tengo más de 8 años transformando ideas en productos digitales que realmente f
 He trabajado en proyectos como Tu Menú Digital (una plataforma completa para restaurantes), Polygon CRM, y varios sitios corporativos. Mi stack favorito incluye Next.js, TypeScript y Supabase, pero también domino WordPress cuando la situación lo requiere.
 
 Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría saber? Puedes preguntarme sobre mis proyectos, tecnologías que uso, mi experiencia, o cualquier cosa que te interese. ¡Estoy aquí para conversar! 😊`,
+      // Versiones cortas y rotativas del mensaje de bienvenida
+      initialMessagesShort: [
+        "¡Hola! Soy Stephan. He resumido 8 años de código y estrategia en este chat. Pregúntame lo que quieras sobre mi trayectoria o mis proyectos.",
+        "Desde CRMs a medida hasta plataformas como Tu Menú Digital. Soy Stephan, y mi especialidad es el equilibrio entre velocidad y calidad. ¿En qué puedo ayudarte?",
+        "¡Hola! Aquí es donde las ideas se convierten en productos reales. Soy Stephan, desarrollador y asesor digital. ¿Tienes un reto técnico o una estrategia que validar?",
+        "Desde Tu Menú Digital hasta CRMs y sitios corporativos: aquí está mi trayectoria en formato chat. ¿Por dónde empezamos?",
+      ],
     },
     
     // 404 Page
@@ -484,6 +492,7 @@ Este es mi espacio personal donde puedes conocerme mejor. ¿Qué te gustaría sa
     
     // Initial chat message
     chat: {
+      // Original long message (kept for future uses)
       initialMessage: `Hello! 👋 I'm Stephan Barker.
 
 I have over 8 years transforming ideas into digital products that actually work. I'm passionate about finding that perfect balance between development speed and code quality.
@@ -491,6 +500,13 @@ I have over 8 years transforming ideas into digital products that actually work.
 I've worked on projects like Tu Menú Digital (a complete platform for restaurants), Polygon CRM, and several corporate sites. My favorite stack includes Next.js, TypeScript, and Supabase, but I also master WordPress when the situation requires it.
 
 This is my personal space where you can get to know me better. What would you like to know? You can ask me about my projects, technologies I use, my experience, or anything that interests you. I'm here to chat! 😊`,
+      // Short, rotating welcome messages
+      initialMessagesShort: [
+        "Hi 👋 I'm Stephan. Over 8 years turning ideas into products that actually work — ask me anything.",
+        "Welcome to the corner where code and strategy shake hands. I'm Stephan — what would you like to explore?",
+        "Hey — Stephan here. Next.js, Supabase, and a bit of WordPress when it fits. What do you want to talk about?",
+        "From Tu Menú Digital to CRMs and corporate sites: my track record in chat form. Where shall we start?",
+      ],
     },
     
     // 404 Page

@@ -24,6 +24,7 @@ import { useChat } from "@ai-sdk/react";
 import { TextStreamChatTransport, type UIMessage } from "ai";
 import { useCalModal } from "@/contexts/CalModalContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { translations } from "@/lib/translations";
 import Cal, { getCalApi } from "@calcom/embed-react";
 import styles from "./MinimalChat.module.css";
 import ProjectsCarousel from "./ProjectsCarousel";
@@ -533,8 +534,19 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
     });
   }, []);
 
-  // Get initial message based on current language
-  const initialMessage = useMemo(() => t("chat.initialMessage"), [t, language]);
+  // Get a short, random initial message based on current language
+  const initialMessage = useMemo(() => {
+    const langTranslations = translations[language as "es" | "en"];
+    const variants = (langTranslations as any)?.chat?.initialMessagesShort as string[] | undefined;
+
+    const pool =
+      variants && Array.isArray(variants) && variants.length > 0
+        ? variants
+        : [t("chat.initialMessage")];
+
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    return pool[randomIndex];
+  }, [language, t]);
 
   // Use AI SDK for chat functionality
   const { messages: aiMessages, sendMessage, error: aiError, status } = useChat({
