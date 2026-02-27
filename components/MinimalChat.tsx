@@ -19,6 +19,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback, Fragment, Rea
 import { PaperPlaneTilt, X, Info, CaretDown } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { cn } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
 import { TextStreamChatTransport, type UIMessage } from "ai";
@@ -1188,30 +1189,36 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
       {/* Error message */}
       {error && <div className={styles.errorMessage}>{error}</div>}
 
-      {/* Input form */}
-      <form onSubmit={handleSubmit} className={styles.inputForm}>
-        <Input
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-            setError("");
-          }}
-          placeholder={t("ui.placeholder")}
-          className={styles.input}
-          aria-label={t("ui.placeholder")}
-          aria-invalid={!!error}
-          disabled={status === "submitted" || status === "streaming"}
-        />
-        <Button
-          type="submit"
-          size="icon"
-          className={styles.sendButton}
-          disabled={!input.trim() || status === "submitted" || status === "streaming"}
-          aria-label={t("ui.send")}
-        >
-          <PaperPlaneTilt className="h-4 w-4" />
-        </Button>
-      </form>
+      {/* Input form with gradient border effect */}
+      <BackgroundGradient
+        containerClassName={styles.inputForm}
+        className={styles.inputFormInner}
+        animate={true}
+      >
+        <form onSubmit={handleSubmit} className={styles.inputFormFields}>
+          <Input
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+              setError("");
+            }}
+            placeholder={t("ui.placeholder")}
+            className={styles.input}
+            aria-label={t("ui.placeholder")}
+            aria-invalid={!!error}
+            disabled={status === "submitted" || status === "streaming"}
+          />
+          <Button
+            type="submit"
+            size="icon"
+            className={styles.sendButton}
+            disabled={!input.trim() || status === "submitted" || status === "streaming"}
+            aria-label={t("ui.send")}
+          >
+            <PaperPlaneTilt className="h-4 w-4" />
+          </Button>
+        </form>
+      </BackgroundGradient>
 
       {/* Scroll indicator - below input, subtle and minimalistic */}
       {showScrollIndicator && (

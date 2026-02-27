@@ -16,6 +16,7 @@
   },
   "registries": {
     "@react-bits": "https://reactbits.dev/r/{name}.json",
-    "@ss-components": "https://ui.shadcn.com/ss-components/{name}.json"
+    "@ss-components": "https://ui.shadcn.com/ss-components/{name}.json",
+    "@aceternity": "https://ui.aceternity.com/registry/{name}.json"
   }
 }
