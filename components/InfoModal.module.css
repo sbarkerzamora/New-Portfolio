@@ -287,6 +287,7 @@
   .body {
     padding: 1rem;
     gap: 1rem;
+    font-size: 0.875rem;
   }
 
   .intro {
@@ -298,12 +299,33 @@
     grid-template-columns: 1fr;
   }
 
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .muted {
+    font-size: 0.8125rem;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+  }
+
   .title {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
   }
 
   .summary {
-    font-size: 0.9rem;
+    font-size: 0.8125rem;
+  }
+
+  .code {
+    font-size: 0.8125rem;
+  }
+
+  .bullet {
+    font-size: 0.875rem;
   }
 
   .grid {

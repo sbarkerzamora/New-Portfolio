@@ -298,6 +298,28 @@
     padding: 3.5rem 1rem 4rem;
   }
 
+  .mediaBadge {
+    font-size: 0.6875rem;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .statLabel {
+    font-size: 0.65rem;
+  }
+
+  .statValue {
+    font-size: 1.05rem;
+  }
+
+  .eyebrow {
+    font-size: 0.65rem;
+    padding: 0.3rem 0.75rem;
+  }
+
+  .lead {
+    font-size: 0.9375rem;
+  }
+
   .mediaFrame {
     aspect-ratio: 3 / 4;
     max-width: 540px;
@@ -312,11 +334,11 @@
 
 @media (max-width: 540px) {
   .title {
-    font-size: clamp(1.7rem, 7vw, 2.3rem);
+    font-size: clamp(1.5rem, 6.2vw, 2rem);
   }
 
   .lead {
-    font-size: 0.95rem;
+    font-size: 0.875rem;
   }
 
   .cards {
@@ -345,7 +367,7 @@
   }
 
   .timelineDescription {
-    font-size: 0.9rem;
+    font-size: 0.8125rem;
     line-height: 1.55;
   }
 }

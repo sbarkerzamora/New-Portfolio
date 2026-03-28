@@ -372,11 +372,11 @@
   }
 
   .projectsInMessage .title {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
 
   .projectsInMessage .description {
-    font-size: 0.8rem;
+    font-size: 0.6875rem;
   }
 }
 
@@ -706,7 +706,7 @@
     flex: 1;
     min-height: 0;
     width: 100%;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
   }
 
   .messagesList {
@@ -737,12 +737,12 @@
   .messageAvatar {
     width: 24px;
     height: 24px;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
   }
 
   .messageContent {
-    font-size: 0.75rem; /* 12px — −2px vs prior 14px for denser reading */
-    line-height: 1.52;
+    font-size: 0.6875rem;
+    line-height: 1.5;
     max-width: 100%;
   }
 
@@ -761,7 +761,7 @@
   }
 
   .componentLabel {
-    font-size: 0.625rem;
+    font-size: 0.5625rem;
     margin-bottom: 0.375rem;
   }
 
@@ -772,7 +772,7 @@
 
   .calendarLoading {
     min-height: 350px;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
   }
 
   .welcomeBanner {
@@ -786,11 +786,11 @@
   }
 
   .welcomeTitle {
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
   }
 
   .welcomeMessage {
-    font-size: 0.625rem;
+    font-size: 0.5625rem;
   }
 
   .composer {
@@ -801,10 +801,10 @@
     border-radius: 0.8125rem;
   }
 
-  /* 14px (−2px vs 16px); iOS: 16px on focus only via transform in TS optional — keep 14 for density */
+  /* 13px; iOS puede hacer zoom al enfocar si <16px */
   .composerInput {
-    font-size: 0.875rem;
-    padding: 0.48rem 0.2rem;
+    font-size: 0.8125rem;
+    padding: 0.45rem 0.2rem;
   }
 
   .sendButton {
@@ -849,7 +849,7 @@
   .quickActionButton {
     min-height: 48px;
     padding: 0.45rem 0.5rem;
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
     white-space: normal;
     text-align: center;
     line-height: 1.25;
@@ -860,6 +860,11 @@
   .quickActionButton:active {
     transform: scale(0.98);
     transition: transform 0.1s ease;
+  }
+
+  .errorMessage {
+    font-size: 0.6875rem;
+    padding: 0.4rem;
   }
 
   .technologiesInMessage {

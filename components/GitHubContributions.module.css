@@ -141,12 +141,12 @@
   }
 
   .title {
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
     letter-spacing: 0.04em;
   }
 
   .link {
-    font-size: 0.625rem;
+    font-size: 0.5625rem;
     min-height: 44px;
     align-items: center;
     padding: 0.25rem 0;
