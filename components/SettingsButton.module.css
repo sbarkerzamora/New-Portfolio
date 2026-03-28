@@ -124,37 +124,63 @@
   .floatingButton.visible:hover {
     transform: translateY(-50%) translateX(0);
   }
-  
+
   .floatingButton.visible:active {
     transform: translateY(-50%) translateX(0);
+  }
+
+  @media (max-width: 640px) {
+    .floatingButton.visible {
+      transform: translate(0, 0);
+    }
+
+    .floatingButton.hidden {
+      transform: translate(calc(100% + 1.25rem), 0);
+    }
+
+    .floatingButton.visible:hover {
+      transform: scale(1.04);
+    }
+
+    .floatingButton.visible:active {
+      transform: scale(0.96);
+    }
   }
 }
 
-/* Mobile adjustments */
+/* Mobile: bottom-right above footer — avoids overlapping chat quick actions */
 @media (max-width: 640px) {
   .floatingButton {
-    width: 32px;
-    height: 32px;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%) translateX(0);
+    width: 44px;
+    height: 44px;
+    top: auto;
+    left: auto;
+    right: max(0.75rem, env(safe-area-inset-right, 0px));
+    bottom: calc(6.75rem + env(safe-area-inset-bottom, 0px));
+    transform: translate(0, 0);
   }
-  
+
+  .floatingButton.visible {
+    transform: translate(0, 0);
+  }
+
   .floatingButton.hidden {
-    transform: translateY(-50%) translateX(calc(-100% - 1rem - 8px));
+    transform: translate(calc(100% + 1.25rem), 0);
+    opacity: 0;
+    pointer-events: none;
   }
-  
+
   .floatingButton.visible:hover {
-    transform: translateY(-50%) translateX(0) scale(1.08);
+    transform: scale(1.06);
   }
-  
+
   .floatingButton.visible:active {
-    transform: translateY(-50%) translateX(0) scale(0.95);
+    transform: scale(0.96);
   }
-  
+
   .icon {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
   }
 }
 

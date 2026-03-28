@@ -1,5 +1,6 @@
 .container {
   width: 100%;
+  flex-shrink: 0;
   margin: 0 0 0.5rem 0;
   padding: 0.25rem 0;
   background: transparent;
@@ -127,25 +128,34 @@
 /* Mobile adjustments */
 @media (max-width: 640px) {
   .container {
-    padding: 0.25rem 0;
-    margin: 0 0 0.375rem 0;
+    padding: 0.35rem 0.125rem;
+    margin: 0 0 0.5rem 0;
     border-radius: 0;
+    box-sizing: border-box;
   }
 
   .header {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.35rem;
+    padding: 0 0.125rem;
   }
 
   .title {
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
   }
 
   .link {
-    font-size: 0.5625rem;
+    font-size: 0.625rem;
+    min-height: 44px;
+    align-items: center;
+    padding: 0.25rem 0;
   }
 
   .weeks {
-    --cell: clamp(6px, 2vw, 8px);
-    --gap: 1px;
+    --cell: clamp(7px, 2.4vw, 9px);
+    --gap: clamp(2px, 0.5vw, 3px);
+    padding-left: 0.125rem;
+    padding-right: 0.125rem;
+    box-sizing: border-box;
   }
 }

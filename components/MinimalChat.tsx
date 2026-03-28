@@ -1215,7 +1215,7 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
             disabled={!input.trim() || status === "submitted" || status === "streaming"}
             aria-label={t("ui.send")}
           >
-            <PaperPlaneTilt className="h-4 w-4" />
+            <PaperPlaneTilt className="h-[1.15rem] w-[1.15rem] sm:h-4 sm:w-4" weight="bold" />
           </Button>
         </form>
       </BackgroundGradient>

@@ -214,17 +214,20 @@
   50% { opacity: 0.5; }
 }
 
-/* Main content area - centered */
+/* Main content area — column flex so chat fills space below header; bottom padding clears fixed footer */
 .mainContent {
   position: relative;
   z-index: 10;
   flex: 1;
+  min-height: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
-  min-height: calc(100vh - 200px);
+  justify-content: flex-start;
+  padding: 1rem 1.25rem;
+  padding-bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px));
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* Mobile: allow scrolling for multi-section layout */
@@ -243,17 +246,20 @@
     min-height: 100dvh;
     position: relative;
     flex-shrink: 0;
-    padding-top: 3.5rem;
-    padding-bottom: 3.5rem;
+    padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
   }
 
+  /* Reserve space for fixed footer (often 2 rows on small screens) + chat composer — avoids overlap */
   .mainContent {
-    padding: 0 0.25rem;
+    padding: 0 0.75rem;
+    padding-bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
     min-height: 0;
     align-items: stretch;
     flex: 1;
     overflow: hidden;
     height: auto;
+    box-sizing: border-box;
   }
 }
 
@@ -266,6 +272,9 @@
   z-index: 100;
   width: 100%;
   padding: 1rem;
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(16px);
@@ -330,14 +339,14 @@
 @media (max-width: 640px) {
   .header {
     position: fixed;
-    top: 0.375rem;
-    left: 0.375rem;
-    right: 0.375rem;
+    top: calc(0.375rem + env(safe-area-inset-top, 0px));
+    left: calc(0.375rem + env(safe-area-inset-left, 0px));
+    right: calc(0.375rem + env(safe-area-inset-right, 0px));
     margin: 0;
     padding: 0.5rem 0.625rem;
     border-radius: 0.875rem;
     z-index: 100;
-    width: calc(100% - 0.75rem);
+    width: auto;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(20px);
   }
@@ -367,8 +376,10 @@
   }
 
   .headerInfoButton {
-    width: 28px;
-    height: 28px;
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
   }
 
   .headerStatusDot {
@@ -383,6 +394,9 @@
     left: 0;
     right: 0;
     padding: 0.625rem 0.5rem;
+    padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+    padding-bottom: max(0.625rem, env(safe-area-inset-bottom, 0px));
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(20px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -390,39 +404,55 @@
   }
 
   .footerContent {
-    gap: 0.5rem;
-    font-size: 0.6875rem;
-    flex-wrap: nowrap;
-    overflow: hidden;
+    gap: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    flex-wrap: wrap;
+    overflow: visible;
     justify-content: center;
+    align-items: center;
     text-align: center;
+    max-width: 100%;
   }
 
   .footerName {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     white-space: nowrap;
-    flex-shrink: 0;
+    flex: 0 0 100%;
+    text-align: center;
+    order: 0;
   }
 
   .footerActions {
-    gap: 0.375rem;
-    flex-shrink: 0;
+    gap: 0.5rem;
+    flex: 0 1 auto;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 0.375rem;
+    order: 1;
+    width: 100%;
+    max-width: 100%;
   }
 
   .footerLink {
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     white-space: nowrap;
+    min-height: 44px;
+    align-items: center;
+    padding: 0 0.25rem;
   }
 
   .bookingButton {
-    padding: 0.35rem;
-    width: 28px;
-    height: 28px;
+    padding: 0;
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
   }
 
   .bookingButton svg {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
   }
 }
 
