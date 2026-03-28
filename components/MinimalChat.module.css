@@ -160,6 +160,73 @@
   }
 }
 
+/* Hint under composer: appears after delay, scrolls to services */
+.belowInputArrowWrap {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 100%;
+  margin-top: 0.35rem;
+  pointer-events: auto;
+}
+
+.belowInputArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.58);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+  animation: belowInputArrowEnter 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.belowInputArrow:hover {
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.belowInputArrow:focus-visible {
+  outline: 2px solid rgba(16, 185, 129, 0.65);
+  outline-offset: 3px;
+}
+
+.belowInputArrow:active {
+  transform: scale(0.96);
+}
+
+.belowInputArrowIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+@keyframes belowInputArrowEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .belowInputArrow {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Messages list */
 .messagesList {
   display: flex;
@@ -1013,6 +1080,20 @@
   background: rgba(239, 68, 68, 0.1);
   color: hsl(var(--destructive));
   border-color: hsl(var(--destructive) / 0.3);
+}
+
+:global(.light) .belowInputArrow {
+  background: rgba(0, 0, 0, 0.04);
+  color: hsl(var(--muted-foreground));
+}
+
+:global(.light) .belowInputArrow:hover {
+  background: rgba(0, 0, 0, 0.07);
+  color: hsl(var(--foreground));
+}
+
+:global(.light) .belowInputArrow:focus-visible {
+  outline-color: rgba(5, 150, 105, 0.55);
 }
 
 :global(.light) .scrollIndicator {

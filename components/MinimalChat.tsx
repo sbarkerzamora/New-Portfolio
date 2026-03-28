@@ -16,7 +16,7 @@
  */
 
 import React, { useState, useRef, useEffect, useMemo, useCallback, Fragment, ReactNode } from "react";
-import { PaperPlaneTilt, X, Info, CaretDown } from "@phosphor-icons/react";
+import { PaperPlaneTilt, X, Info, CaretDown, ArrowDown } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
@@ -35,6 +35,9 @@ import gsap from "gsap";
 
 // Maximum number of messages to display
 const MAX_MESSAGES = 10;
+
+/** Delay before showing the “scroll down” hint under the composer (ms) */
+const BELOW_INPUT_ARROW_DELAY_MS = 5000;
 
 /**
  * Parse basic markdown to React elements
@@ -433,6 +436,7 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
   const [error, setError] = useState("");
   const [showWelcome, setShowWelcome] = useState(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const [showBelowInputArrow, setShowBelowInputArrow] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const messagesAreaRef = useRef<HTMLDivElement | null>(null);
@@ -467,6 +471,14 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
       }
     });
     return () => ctx.revert();
+  }, []);
+
+  // Down-arrow hint under the input: appears once after delay (entrance via CSS)
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setShowBelowInputArrow(true);
+    }, BELOW_INPUT_ARROW_DELAY_MS);
+    return () => window.clearTimeout(id);
   }, []);
 
   // Local state for input (AI SDK v5 doesn't provide input state)
@@ -768,6 +780,12 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
         container.scrollTop = container.scrollHeight;
       }
     }
+  }, []);
+
+  /** Smooth-scroll page to the first section after the hero (services) */
+  const scrollToContentBelowHero = useCallback(() => {
+    const el = document.getElementById("services-title");
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
   /**
@@ -1216,6 +1234,19 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
           </Button>
         </form>
       </div>
+
+      {showBelowInputArrow && (
+        <div className={styles.belowInputArrowWrap}>
+          <button
+            type="button"
+            className={styles.belowInputArrow}
+            onClick={scrollToContentBelowHero}
+            aria-label={t("ui.scrollExploreBelow")}
+          >
+            <ArrowDown className={styles.belowInputArrowIcon} weight="bold" aria-hidden />
+          </button>
+        </div>
+      )}
 
       {/* Scroll indicator - below input, subtle and minimalistic */}
       {showScrollIndicator && (
