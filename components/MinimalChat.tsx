@@ -18,8 +18,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback, Fragment, ReactNode } from "react";
 import { PaperPlaneTilt, X, Info, CaretDown } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { cn } from "@/lib/utils";
 import { useChat } from "@ai-sdk/react";
 import { TextStreamChatTransport, type UIMessage } from "ai";
@@ -1189,24 +1187,23 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
       {/* Error message */}
       {error && <div className={styles.errorMessage}>{error}</div>}
 
-      {/* Input form with gradient border effect */}
-      <BackgroundGradient
-        containerClassName={styles.inputForm}
-        className={styles.inputFormInner}
-        animate={true}
-      >
-        <form onSubmit={handleSubmit} className={styles.inputFormFields}>
-          <Input
+      {/* Single-surface composer — one border, no nested frames */}
+      <div className={styles.composer}>
+        <form onSubmit={handleSubmit} className={styles.composerForm}>
+          <input
+            type="text"
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
               setError("");
             }}
             placeholder={t("ui.placeholder")}
-            className={styles.input}
+            className={styles.composerInput}
             aria-label={t("ui.placeholder")}
             aria-invalid={!!error}
             disabled={status === "submitted" || status === "streaming"}
+            autoComplete="off"
+            enterKeyHint="send"
           />
           <Button
             type="submit"
@@ -1218,7 +1215,7 @@ export default function MinimalChat({ className, onContactRequest, onConnectionS
             <PaperPlaneTilt className="h-[1.15rem] w-[1.15rem] sm:h-4 sm:w-4" weight="bold" />
           </Button>
         </form>
-      </BackgroundGradient>
+      </div>
 
       {/* Scroll indicator - below input, subtle and minimalistic */}
       {showScrollIndicator && (

@@ -413,91 +413,70 @@
   }
 }
 
-/* Input form */
-.inputForm {
-  display: flex;
-  gap: 0.375rem;
-  align-items: center;
+/* Composer: one surface, one emerald border — input is borderless inside */
+@keyframes composerEnter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.composer {
   margin-top: 0.625rem;
-  min-width: 0;
   flex-shrink: 0;
-}
-
-.inputFormInner {
-  display: flex;
-  flex: 1;
-  gap: 0.375rem;
-  align-items: center;
-  border-radius: 0.95rem;
-  background: rgba(3, 7, 18, 0.96);
+  width: 100%;
   min-width: 0;
-  padding: 0.25rem;
-}
-
-.inputFormFields {
-  display: flex;
-  flex: 1;
-  gap: 0.375rem;
-  align-items: center;
-  min-width: 0;
-}
-
-.input {
-  flex: 1;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.09) 0%,
-    rgba(255, 255, 255, 0.04) 100%
-  );
-  border: 1px solid rgba(52, 211, 153, 0.38);
-  color: rgba(255, 255, 255, 0.96);
-  border-radius: 0.65rem;
-  padding: 0.6rem 0.9rem;
-  font-size: 0.875rem;
-  box-shadow:
-    0 0 0 1px rgba(16, 185, 129, 0.12),
-    0 4px 20px -8px rgba(16, 185, 129, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border-radius: 0.875rem;
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  background: rgba(7, 12, 24, 0.96);
+  padding: 0.2rem 0.35rem 0.2rem 0.65rem;
+  box-shadow: 0 12px 40px -22px rgba(0, 0, 0, 0.85);
   transition:
-    border-color 0.25s cubic-bezier(0.25, 1, 0.5, 1),
-    box-shadow 0.25s cubic-bezier(0.25, 1, 0.5, 1),
-    background 0.25s ease;
+    border-color 0.28s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: composerEnter 0.58s cubic-bezier(0.25, 1, 0.5, 1) both;
+  animation-delay: 0.1s;
+  z-index: 20;
 }
 
-.input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
-}
-
-.input:focus {
+.composer:focus-within {
   border-color: rgba(110, 231, 183, 0.65);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(16, 185, 129, 0.06) 100%
-  );
-  outline: none;
   box-shadow:
-    0 0 0 2px rgba(16, 185, 129, 0.25),
-    0 0 28px -6px rgba(52, 211, 153, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 12px 40px -22px rgba(0, 0, 0, 0.85),
+    0 0 0 3px rgba(16, 185, 129, 0.14);
 }
 
-@media (max-width: 640px) {
-  .input {
-    border-color: rgba(52, 211, 153, 0.45);
-    box-shadow:
-      0 0 0 1px rgba(16, 185, 129, 0.18),
-      0 6px 24px -10px rgba(16, 185, 129, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  }
+.composerForm {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
 
-  .input:focus {
-    border-color: rgba(167, 243, 208, 0.75);
-    box-shadow:
-      0 0 0 2px rgba(52, 211, 153, 0.35),
-      0 0 32px -4px rgba(16, 185, 129, 0.5),
-      inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  }
+.composerInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  padding: 0.55rem 0.25rem;
+  outline: none;
+  box-shadow: none;
+}
+
+.composerInput::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.composerInput:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .sendButton {
@@ -511,12 +490,10 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: linear-gradient(145deg, #4ade80 0%, #22c55e 38%, #10b981 72%, #059669 100%);
+  background: linear-gradient(145deg, #4ade80 0%, #22c55e 40%, #10b981 100%);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.22) inset,
-    0 2px 0 rgba(255, 255, 255, 0.12) inset,
-    0 6px 22px -4px rgba(16, 185, 129, 0.65),
-    0 0 24px -8px rgba(52, 211, 153, 0.5);
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+    0 6px 20px -6px rgba(16, 185, 129, 0.55);
   transition:
     transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
     box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1),
@@ -524,22 +501,20 @@
 }
 
 .sendButton:hover:not(:disabled) {
-  filter: brightness(1.08) saturate(1.05);
-  transform: scale(1.07);
+  filter: brightness(1.06);
+  transform: scale(1.06);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.28) inset,
-    0 2px 0 rgba(255, 255, 255, 0.15) inset,
-    0 8px 28px -4px rgba(16, 185, 129, 0.75),
-    0 0 36px -6px rgba(110, 231, 183, 0.45);
+    0 8px 26px -6px rgba(16, 185, 129, 0.65);
 }
 
 .sendButton:active:not(:disabled) {
   transform: scale(0.96);
-  filter: brightness(0.95);
+  filter: brightness(0.96);
 }
 
 .sendButton:disabled {
-  background: linear-gradient(145deg, rgba(55, 65, 81, 0.9), rgba(31, 41, 55, 0.95));
+  background: rgba(55, 65, 81, 0.85);
   color: rgba(255, 255, 255, 0.35);
   box-shadow: none;
   cursor: not-allowed;
@@ -547,6 +522,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .composer {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
   .sendButton:hover:not(:disabled),
   .sendButton:active:not(:disabled) {
     transform: none;
@@ -676,9 +657,10 @@
     position: relative;
     width: 100%;
     height: 100%;
+    max-height: 100%;
     max-width: none;
-    padding: 0.375rem 0.875rem 0;
-    gap: 0.5rem;
+    padding: 0.25rem 0.75rem 0;
+    gap: 0.35rem;
     display: flex;
     flex-direction: column;
     border-radius: 0;
@@ -686,7 +668,8 @@
     background: transparent;
     backdrop-filter: none;
     z-index: 50;
-    overflow: visible;
+    overflow: hidden;
+    min-height: 0;
   }
 
   .connectionIndicator {
@@ -702,31 +685,38 @@
     display: none; /* Hide avatar section on mobile */
   }
 
+  /* One scroll container: area flexes to fill hero; list scrolls inside */
   .messagesArea {
-    flex: 1;
+    flex: 1 1 0;
     min-height: 0;
-    max-height: none;
-    padding: 0.5rem 0 0.25rem;
-    overflow-y: auto;
-    margin-bottom: 0.25rem;
+    padding: 0.35rem 0 0.15rem;
+    overflow: hidden;
+    margin-bottom: 0;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     align-items: stretch;
   }
 
-  /* Empty state stays visually centered when there are no messages */
   .messagesArea:has(.emptyState) {
     justify-content: center;
   }
 
-  .messagesList {
-    flex: 0 1 auto;
-    max-height: 100%;
+  .emptyState {
+    flex: 1;
     min-height: 0;
+    width: 100%;
+    font-size: 0.8125rem;
+  }
+
+  .messagesList {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
     width: 100%;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   .scrollIndicator {
@@ -751,8 +741,8 @@
   }
 
   .messageContent {
-    font-size: 0.875rem;
-    line-height: 1.55;
+    font-size: 0.75rem; /* 12px — −2px vs prior 14px for denser reading */
+    line-height: 1.52;
     max-width: 100%;
   }
 
@@ -786,35 +776,35 @@
   }
 
   .welcomeBanner {
-    padding: 0.75rem;
-    margin-bottom: 0.75rem;
+    padding: 0.55rem 0.65rem;
+    margin-bottom: 0.4rem;
+    flex-shrink: 0;
   }
 
   .welcomeContent {
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
 
   .welcomeTitle {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
   }
 
   .welcomeMessage {
-    font-size: 0.6875rem;
+    font-size: 0.625rem;
   }
 
-  .inputForm {
-    gap: 0.375rem;
-    margin-top: 0.375rem;
-    position: relative;
-    bottom: auto;
-    background: transparent;
-    padding: 0.25rem 0 0;
-    z-index: 20;
+  .composer {
+    flex-shrink: 0;
+    margin-top: 0.35rem;
+    margin-bottom: 0.25rem;
+    padding: 0.22rem 0.3rem 0.22rem 0.55rem;
+    border-radius: 0.8125rem;
   }
 
-  .input {
-    font-size: 1rem; /* 16px min: avoids iOS zoom on focus */
-    padding: 0.56rem 0.8rem;
+  /* 14px (−2px vs 16px); iOS: 16px on focus only via transform in TS optional — keep 14 for density */
+  .composerInput {
+    font-size: 0.875rem;
+    padding: 0.48rem 0.2rem;
   }
 
   .sendButton {
@@ -850,16 +840,16 @@
   .quickActions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-    margin-top: 0.625rem;
-    padding: 0.25rem 0 0.875rem;
+    gap: 0.45rem;
+    margin-top: 0.45rem;
+    padding: 0.15rem 0 0.5rem;
     width: 100%;
   }
 
   .quickActionButton {
     min-height: 48px;
-    padding: 0.5rem 0.625rem;
-    font-size: 0.8125rem;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.75rem;
     white-space: normal;
     text-align: center;
     line-height: 1.25;
@@ -914,36 +904,25 @@
   color: hsl(var(--primary));
 }
 
-:global(.light) .inputForm {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(0, 0, 0, 0.08);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+:global(.light) .composer {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(16, 185, 129, 0.38);
+  box-shadow: 0 10px 36px -20px rgba(0, 0, 0, 0.14);
 }
 
-:global(.light) .inputFormInner {
-  background: rgba(255, 255, 255, 0.95);
+:global(.light) .composer:focus-within {
+  border-color: rgba(5, 150, 105, 0.52);
+  box-shadow:
+    0 10px 36px -20px rgba(0, 0, 0, 0.14),
+    0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
-:global(.light) .input {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.92) 100%);
-  border-color: rgba(16, 185, 129, 0.4);
+:global(.light) .composerInput {
   color: hsl(var(--foreground));
-  box-shadow:
-    0 0 0 1px rgba(16, 185, 129, 0.12),
-    0 4px 18px -8px rgba(16, 185, 129, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
-:global(.light) .input::placeholder {
+:global(.light) .composerInput::placeholder {
   color: hsl(var(--muted-foreground));
-}
-
-:global(.light) .input:focus {
-  border-color: rgba(5, 150, 105, 0.65);
-  box-shadow:
-    0 0 0 2px hsl(var(--primary) / 0.12),
-    0 0 24px -6px rgba(16, 185, 129, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 :global(.light) .sendButton {
@@ -1052,34 +1031,6 @@
 }
 
 @media (max-width: 640px) {
-  :global(.light) .inputForm {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-  }
-
-  :global(.light) .inputFormInner {
-    border: none;
-    background: linear-gradient(
-      168deg,
-      rgba(255, 255, 255, 1) 0%,
-      rgba(248, 250, 252, 0.99) 50%,
-      rgba(241, 245, 249, 0.98) 100%
-    );
-    box-shadow:
-      inset 0 0 0 1px rgba(16, 185, 129, 0.28),
-      inset 0 2px 20px rgba(255, 255, 255, 0.9),
-      0 1px 0 rgba(255, 255, 255, 1);
-    transition: box-shadow 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-
-  :global(.light) .inputFormInner:focus-within {
-    box-shadow:
-      inset 0 0 0 1px rgba(5, 150, 105, 0.45),
-      inset 0 0 32px -10px rgba(16, 185, 129, 0.08),
-      0 0 0 2px rgba(16, 185, 129, 0.12);
-  }
-
   :global(.light) .suggestionsBar {
     background: rgba(255, 255, 255, 0.95);
   }

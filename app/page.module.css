@@ -239,26 +239,28 @@
     overflow-x: hidden;
   }
 
+  /* Hero = full viewport; top pad clears fixed header only — bottom breathing room lives in mainContent */
   .heroSection {
     height: 100vh;
     height: 100dvh;
     min-height: 100vh;
     min-height: 100dvh;
+    max-height: 100dvh;
     position: relative;
     flex-shrink: 0;
-    padding-top: calc(3.5rem + env(safe-area-inset-top, 0px));
-    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+    padding-top: calc(3.25rem + env(safe-area-inset-top, 0px));
+    padding-bottom: 0;
+    box-sizing: border-box;
   }
 
-  /* Reserve space for fixed footer (often 2 rows on small screens) + chat composer — avoids overlap */
+  /* Single bottom reserve: footer + composer + safe area (avoid double padding with hero) */
   .mainContent {
     padding: 0 0.75rem;
-    padding-bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(10.75rem + env(safe-area-inset-bottom, 0px));
     min-height: 0;
+    flex: 1 1 0;
     align-items: stretch;
-    flex: 1;
     overflow: hidden;
-    height: auto;
     box-sizing: border-box;
   }
 }

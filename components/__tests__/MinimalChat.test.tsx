@@ -57,27 +57,6 @@ vi.mock("@/components/ui/button", () => ({
   ),
 }));
 
-vi.mock("@/components/ui/input", () => ({
-  Input: ({
-    value,
-    onChange,
-    placeholder,
-    ...props
-  }: {
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder?: string;
-    [key: string]: unknown;
-  }) => (
-    <input
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      {...props}
-    />
-  ),
-}));
-
 describe("MinimalChat", () => {
   beforeEach(() => {
     vi.clearAllMocks();

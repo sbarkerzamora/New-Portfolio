@@ -28,6 +28,8 @@ export const BackgroundGradient = ({
         /* Mobile: static emerald frame (bold, no animated layers) — confident focal strip */
         "max-[640px]:rounded-[15px] max-[640px]:p-[3px]",
         "max-[640px]:bg-[linear-gradient(145deg,#5eead4_0%,#22c55e_22%,#10b981_48%,#059669_72%,#065f46_100%)]",
+        /* Outer stroke — same emerald language as desktop ring */
+        "max-[640px]:ring-2 max-[640px]:ring-emerald-400/35",
         "max-[640px]:shadow-[0_14px_44px_-18px_rgba(16,185,129,0.55),0_0_0_1px_rgba(0,0,0,0.35)_inset]",
         "max-[640px]:motion-reduce:shadow-[0_8px_28px_-14px_rgba(16,185,129,0.4)]",
         containerClassName
@@ -85,10 +87,11 @@ export const BackgroundGradient = ({
           /* Desktop: stronger inset ring — composer reads as primary control */
           "min-[641px]:ring-2 min-[641px]:ring-inset min-[641px]:ring-emerald-400/25",
           "min-[641px]:shadow-[0_18px_45px_rgba(2,6,23,0.85),0_0_0_1px_rgba(52,211,153,0.12),0_0_48px_-20px_rgba(16,185,129,0.22)]",
-          /* Mobile: dark well inside bold outer frame — high contrast, not flat */
+          /* Mobile: same inset emerald ring as desktop (min-[641px]) */
           "max-[640px]:rounded-[11px] max-[640px]:border-0",
+          "max-[640px]:ring-2 max-[640px]:ring-inset max-[640px]:ring-emerald-400/25",
           "max-[640px]:bg-[linear-gradient(168deg,rgba(6,12,24,0.99)_0%,rgba(3,7,16,1)_45%,rgba(2,6,14,1)_100%)]",
-          "max-[640px]:shadow-[inset_0_0_0_1px_rgba(52,211,153,0.2),inset_0_2px_24px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.06)]",
+          "max-[640px]:shadow-[inset_0_0_0_1px_rgba(52,211,153,0.2),inset_0_2px_24px_rgba(0,0,0,0.45),0_1px_0_rgba(255,255,255,0.06),0_0_48px_-20px_rgba(16,185,129,0.22)]",
           "max-[640px]:transition-[box-shadow,filter] max-[640px]:duration-300 max-[640px]:ease-[cubic-bezier(0.25,1,0.5,1)] max-[640px]:motion-reduce:transition-none",
           "max-[640px]:focus-within:shadow-[inset_0_0_0_1px_rgba(110,231,183,0.42),inset_0_0_28px_-8px_rgba(16,185,129,0.12),0_0_0_2px_rgba(16,185,129,0.2)]",
           className
