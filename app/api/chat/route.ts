@@ -89,6 +89,8 @@ function getLLMModel() {
         baseURL: "https://integrate.api.nvidia.com/v1",
       });
       
+      console.log("Using Nvidia provider:", { model, hasApiKey: !!apiKey });
+      
       // Return a compatible model object that matches AI SDK interface
       // We'll wrap the Nvidia OpenAI client to work with streamText
       return {
@@ -100,9 +102,6 @@ function getLLMModel() {
             top_p: options.topP ?? 0.95,
             max_tokens: options.maxTokens ?? 16384,
             stream: false,
-            ...((process.env.NODE_ENV === "development" || options.thinking) && {
-              thinking: { type: "enabled", budget_tokens: 5000 },
-            }),
           } as any);
 
           return {
@@ -115,32 +114,26 @@ function getLLMModel() {
           };
         },
         doStream: async (options: any) => {
-          const completion = await nvidiaClient.chat.completions.create({
+          // For streaming, we need to handle the response properly
+          const streamResponse = await (nvidiaClient.chat.completions.create({
             model,
             messages: options.messages,
             temperature: options.temperature ?? 0.7,
             top_p: options.topP ?? 0.95,
             max_tokens: options.maxTokens ?? 16384,
             stream: true,
-            ...((process.env.NODE_ENV === "development" || options.thinking) && {
-              thinking: { type: "enabled", budget_tokens: 5000 },
-            }),
-          } as any);
+          } as any));
 
           return {
             stream: (async function* () {
-              for await (const chunk of completion) {
-                const delta = chunk.choices[0]?.delta;
+              // Cast as unknown first, then to AsyncIterable to avoid type errors
+              const stream = streamResponse as unknown as AsyncIterable<any>;
+              for await (const chunk of stream) {
+                const delta = chunk.choices?.[0]?.delta;
                 if (delta?.content) {
                   yield {
                     type: "text-delta" as const,
                     text: delta.content,
-                  };
-                }
-                if (delta?.reasoning) {
-                  yield {
-                    type: "text-delta" as const,
-                    text: delta.reasoning,
                   };
                 }
               }
