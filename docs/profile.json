@@ -15,7 +15,7 @@
     "enfoque": "Me especializo en ayudar a empresas a hacer la transición de sitios web estáticos a aplicaciones web modernas y funcionales. Trabajo tanto con startups que necesitan MVP rápidos como con empresas establecidas que buscan modernizar su infraestructura digital.",
     "logros_destacados": [
       "Desarrollé Tu Menú Digital, una plataforma completa que ayuda a restaurantes a digitalizar sus operaciones",
-      "Creé Patepero.online, plataforma todo-en-uno para publicación y venta de eventos con apps móviles en desarrollo",
+      "Creé pateperro.online, plataforma todo-en-uno para publicación y venta de eventos con apps móviles en desarrollo",
       "Implementé sistemas de pago integrados que procesan transacciones de forma segura y eficiente",
       "Lideré la transformación digital de múltiples empresas, aumentando su eficiencia operativa en más del 40%"
     ],
@@ -77,7 +77,7 @@
       "empresa": "Independiente",
       "descripcion": "Desarrollo de aplicaciones web modernas, APIs RESTful y apps móviles. Gestión de infraestructura en Linux con Docker y despliegue en Vercel. Integración de pasarelas de pago (Stripe/PayPal) y desarrollo de sistemas de ticketing para eventos.",
       "logros": [
-        "Desarrollé Patepero.online, plataforma integral para publicar y vender eventos con sistema de entradas y validación de accesos",
+        "Desarrollé pateperro.online, plataforma integral para publicar y vender eventos con sistema de entradas y validación de accesos",
         "Desarrollé Tu Menú Digital, plataforma SaaS completa para restaurantes",
         "Construyo APIs robustas con autenticación Bearer para consumo web y móvil",
         "Desarrollo apps Android/iPhone con React Native Expo"
@@ -119,11 +119,11 @@
   ],
   "proyectos_destacados": [
     {
-      "nombre": "Patepero.online",
+      "nombre": "pateperro.online",
       "categoria": "Plataforma de Eventos",
       "descripcion": "Plataforma todo-en-uno para gestionar eventos de principio a fin. Permite crear eventos, cobrar entradas en línea y validar accesos el día del evento. Incluye panel de administración para organizadores y apps móviles (Android/iPhone) en desarrollo para validación de tickets.",
-      "imagen": "/projects/patepero.png",
-      "enlace": "https://patepero.online/",
+      "imagen": "/projects/pateperro.png",
+      "enlace": "https://pateperro.online/",
       "tecnologias": ["Next.js", "TypeScript", "Supabase", "React Native Expo", "Vercel"],
       "impacto": "Plataforma todo-en-uno para la gestión completa de eventos con sistema de ticketing y validación de accesos integrado."
     },
