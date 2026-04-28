@@ -2,8 +2,8 @@
   "perfil_profesional": {
     "nombre": "Stephan Barker",
     "titulo_principal": "DESARROLLADOR FULL STACK & ASESOR DIGITAL",
-    "resumen_perfil": "Desarrollador web versátil con sólida base en gestión de servidores y arquitecturas modernas. Combino la agilidad del desarrollo No-Code/WordPress con la potencia del código a medida (Next.js, TypeScript).",
-    "descripcion_hero": "Más de 8 años transformando ideas en productos digitales. Especialista en la transición de sitios web informativos a aplicaciones web escalables utilizando Next.js, Supabase y Docker, sin descuidar el ecosistema WordPress & WooCommerce.",
+    "resumen_perfil": "Desarrollador full stack con experiencia en Next.js, Supabase y React Native. Especialista en crear plataformas SaaS, APIs robustas y aplicaciones móviles que resuelven problemas reales de negocio.",
+    "descripcion_hero": "Más de 8 años transformando ideas en productos digitales. Desarrolo plataformas web escalables con Next.js y Supabase, creo APIs seguras y construyo apps móviles con React Native. También trabajo con WordPress & WooCommerce cuando la situación lo requiere.",
     "filosofia_trabajo": "Creo en la simplicidad y la eficiencia. Cada proyecto que desarrollo busca resolver problemas reales con soluciones elegantes y escalables. Me apasiona encontrar el equilibrio perfecto entre la velocidad del desarrollo y la calidad del código.",
     "valores": [
       "Transparencia en cada etapa del proyecto",
@@ -15,9 +15,9 @@
     "enfoque": "Me especializo en ayudar a empresas a hacer la transición de sitios web estáticos a aplicaciones web modernas y funcionales. Trabajo tanto con startups que necesitan MVP rápidos como con empresas establecidas que buscan modernizar su infraestructura digital.",
     "logros_destacados": [
       "Desarrollé Tu Menú Digital, una plataforma completa que ayuda a restaurantes a digitalizar sus operaciones",
-      "Lideré la transformación digital de múltiples empresas, aumentando su eficiencia operativa en más del 40%",
+      "Creé Patepero.online, plataforma todo-en-uno para publicación y venta de eventos con apps móviles en desarrollo",
       "Implementé sistemas de pago integrados que procesan transacciones de forma segura y eficiente",
-      "Creé arquitecturas escalables que soportan el crecimiento de startups desde MVP hasta productos maduros"
+      "Lideré la transformación digital de múltiples empresas, aumentando su eficiencia operativa en más del 40%"
     ],
     "enlaces": {
       "github": "https://github.com/sbarkerzamora",
@@ -44,6 +44,7 @@
       "React",
       "TypeScript",
       "JavaScript (ES6+)",
+      "React Native (Expo)",
       "Consumo de APIs RESTful"
     ],
     "backend_y_datos": [
@@ -64,6 +65,7 @@
     ],
     "herramientas_y_flujo": [
       "Cursor (AI Code Editor)",
+      "Opencode (AI Agents)",
       "VS Code",
       "Despliegue Continuo (CI/CD básico)"
     ]
@@ -73,12 +75,12 @@
       "rol": "Desarrollador Full Stack & Freelancer",
       "periodo": "Actualidad",
       "empresa": "Independiente",
-      "descripcion": "Desarrollo de aplicaciones web modernas y APIs. Administración de infraestructura en Linux y despliegue de contenedores con Docker. Integración de pasarelas de pago (Stripe/PayPal) para productos digitales y mantenimiento de repositorios en GitHub.",
+      "descripcion": "Desarrollo de aplicaciones web modernas, APIs RESTful y apps móviles. Gestión de infraestructura en Linux con Docker y despliegue en Vercel. Integración de pasarelas de pago (Stripe/PayPal) y desarrollo de sistemas de ticketing para eventos.",
       "logros": [
-        "Desarrollé Tu Menú Digital desde cero, una plataforma SaaS completa para restaurantes",
-        "Implementé sistemas de autenticación y autorización escalables usando Next.js y Supabase",
-        "Optimicé el rendimiento de aplicaciones, reduciendo tiempos de carga en más del 60%",
-        "Integré múltiples pasarelas de pago, procesando transacciones de forma segura"
+        "Desarrollé Patepero.online, plataforma integral para publicar y vender eventos con sistema de entradas y validación de accesos",
+        "Desarrollé Tu Menú Digital, plataforma SaaS completa para restaurantes",
+        "Construyo APIs robustas con autenticación Bearer para consumo web y móvil",
+        "Desarrollo apps Android/iPhone con React Native Expo"
       ]
     },
     {
@@ -116,6 +118,15 @@
     }
   ],
   "proyectos_destacados": [
+    {
+      "nombre": "Patepero.online",
+      "categoria": "Plataforma de Eventos",
+      "descripcion": "Plataforma todo-en-uno para gestionar eventos de principio a fin. Permite crear eventos, cobrar entradas en línea y validar accesos el día del evento. Incluye panel de administración para organizadores y apps móviles (Android/iPhone) en desarrollo para validación de tickets.",
+      "imagen": "/projects/patepero.png",
+      "enlace": "https://patepero.online/",
+      "tecnologias": ["Next.js", "TypeScript", "Supabase", "React Native Expo", "Vercel"],
+      "impacto": "Plataforma todo-en-uno para la gestión completa de eventos con sistema de ticketing y validación de accesos integrado."
+    },
     {
       "nombre": "Proyectos Open Source / GitHub",
       "categoria": "Desarrollo Full Stack",
