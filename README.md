@@ -32,6 +32,7 @@ A modern, interactive portfolio website featuring an AI-powered chat interface. 
 - API key from your chosen LLM provider:
   - **OpenRouter** (recommended): Get your API key from [OpenRouter](https://openrouter.ai/keys)
   - **OpenAI**: Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+  - **Nvidia**: Get your API key from [Nvidia Build](https://build.nvidia.com/)
   - **Other providers**: See configuration section below
 
 ## 🚀 Getting Started
@@ -90,7 +91,22 @@ OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-#### Option 3: Custom Provider
+#### Option 3: Nvidia (DeepSeek v4 Pro)
+
+Access to Nvidia's API integration with DeepSeek v4 Pro model.
+
+```env
+# LLM Provider Configuration
+LLM_PROVIDER=nvidia
+
+# Nvidia API Key (get from https://build.nvidia.com/)
+NVIDIA_API_KEY=your_nvidia_api_key_here
+
+# Optional: Specify a model (default: deepseek-ai/deepseek-v4-pro)
+NVIDIA_MODEL=deepseek-ai/deepseek-v4-pro
+```
+
+#### Option 4: Custom Provider
 
 See the [LLM Provider Configuration](#llm-provider-configuration) section below for instructions on adding custom providers.
 
@@ -158,6 +174,27 @@ OPENAI_MODEL=gpt-4o-mini
 - `gpt-4o`
 - `gpt-4-turbo`
 - `gpt-3.5-turbo`
+
+#### Nvidia (DeepSeek v4 Pro)
+
+Direct access to Nvidia's API integration featuring high-performance models like DeepSeek v4 Pro.
+
+**Configuration:**
+```env
+LLM_PROVIDER=nvidia
+NVIDIA_API_KEY=your_api_key_here
+NVIDIA_MODEL=deepseek-ai/deepseek-v4-pro
+```
+
+**Available Models:**
+- `deepseek-ai/deepseek-v4-pro` (default)
+- And other models available through Nvidia's Build platform
+
+**Key Features:**
+- High-performance inference through Nvidia's optimized endpoints
+- Supports streaming responses
+- Integrated thinking/reasoning capabilities
+- Configurable token limits and sampling parameters
 
 ### Adding Custom Providers
 

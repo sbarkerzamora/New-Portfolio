@@ -3,6 +3,7 @@ import { loadProfile } from "@/lib/profile";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
+import OpenAI from "openai";
 
 export const runtime = "nodejs";
 
@@ -20,13 +21,19 @@ export const runtime = "nodejs";
  *    - Direct OpenAI API access
  *    - Get API key: https://platform.openai.com/api-keys
  * 
- * 3. Custom: Implement your own provider in the getLLMModel function below
+ * 3. Nvidia: Set LLM_PROVIDER=nvidia and NVIDIA_API_KEY
+ *    - Nvidia API integration
+ *    - Get API key: https://build.nvidia.com/
+ *    - Default model: deepseek-ai/deepseek-v4-pro
+ * 
+ * 4. Custom: Implement your own provider in the getLLMModel function below
  * 
  * The model can be configured via environment variables:
  * - OPENROUTER_MODEL (for OpenRouter)
  * - OPENAI_MODEL (for OpenAI)
+ * - NVIDIA_MODEL (for Nvidia)
  * 
- * Default model: openai/gpt-4o-mini (OpenRouter) or gpt-4o-mini (OpenAI)
+ * Default model: openai/gpt-4o-mini (OpenRouter), gpt-4o-mini (OpenAI), or deepseek-ai/deepseek-v4-pro (Nvidia)
  */
 
 /**
@@ -68,6 +75,75 @@ function getLLMModel() {
       return openai(model);
     }
 
+    case "nvidia": {
+      const apiKey = process.env.NVIDIA_API_KEY;
+      if (!apiKey) {
+        throw new Error(
+          "Nvidia API key not set. Please set NVIDIA_API_KEY in your environment variables."
+        );
+      }
+
+      const model = process.env.NVIDIA_MODEL || "deepseek-ai/deepseek-v4-pro";
+      const nvidiaClient = new OpenAI({
+        apiKey,
+        baseURL: "https://integrate.api.nvidia.com/v1",
+      });
+      
+      console.log("Using Nvidia provider:", { model, hasApiKey: !!apiKey });
+      
+      // Return a compatible model object that matches AI SDK interface
+      // We'll wrap the Nvidia OpenAI client to work with streamText
+      return {
+        doGenerate: async (options: any) => {
+          const completion = await nvidiaClient.chat.completions.create({
+            model,
+            messages: options.messages,
+            temperature: options.temperature ?? 0.7,
+            top_p: options.topP ?? 0.95,
+            max_tokens: options.maxTokens ?? 16384,
+            stream: false,
+          } as any);
+
+          return {
+            text: completion.choices[0]?.message?.content || "",
+            usage: {
+              promptTokens: completion.usage?.prompt_tokens ?? 0,
+              completionTokens: completion.usage?.completion_tokens ?? 0,
+              totalTokens: completion.usage?.total_tokens ?? 0,
+            },
+          };
+        },
+        doStream: async (options: any) => {
+          // For streaming, we need to handle the response properly
+          const streamResponse = await (nvidiaClient.chat.completions.create({
+            model,
+            messages: options.messages,
+            temperature: options.temperature ?? 0.7,
+            top_p: options.topP ?? 0.95,
+            max_tokens: options.maxTokens ?? 16384,
+            stream: true,
+          } as any));
+
+          return {
+            stream: (async function* () {
+              // Cast as unknown first, then to AsyncIterable to avoid type errors
+              const stream = streamResponse as unknown as AsyncIterable<any>;
+              for await (const chunk of stream) {
+                const delta = chunk.choices?.[0]?.delta;
+                if (delta?.content) {
+                  yield {
+                    type: "text-delta" as const,
+                    text: delta.content,
+                  };
+                }
+              }
+            })(),
+            rawCall: { rawPrompt: options.prompt, rawSettings: {} },
+          };
+        },
+      } as any;
+    }
+
     // Add more providers here as needed
     // Example for Anthropic:
     // case "anthropic": {
@@ -82,7 +158,7 @@ function getLLMModel() {
 
     default:
       throw new Error(
-        `Unsupported LLM provider: ${provider}. Supported providers: openrouter, openai. ` +
+        `Unsupported LLM provider: ${provider}. Supported providers: openrouter, openai, nvidia. ` +
         `Set LLM_PROVIDER environment variable to one of these values.`
       );
   }
@@ -146,6 +222,8 @@ export async function POST(req: Request) {
         modelName = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
       } else if (provider === "openai") {
         modelName = process.env.OPENAI_MODEL || "gpt-4o-mini";
+      } else if (provider === "nvidia") {
+        modelName = process.env.NVIDIA_MODEL || "deepseek-ai/deepseek-v4-pro";
       } else {
         modelName = "unknown";
       }
