@@ -142,8 +142,8 @@ docs/
 - Use `.env.local` for local development
 - Copy `.env.example` as template for new variables
 - Required variables:
-  - `LLM_PROVIDER` - e.g., "openrouter", "openai"
-  - `OPENROUTER_API_KEY` or `OPENAI_API_KEY` (depending on provider)
+  - `OPENROUTER_API_KEY` — from https://openrouter.ai/keys
+  - `OPENROUTER_MODEL` — optional, defaults to `openai/gpt-4o-mini`
 
 ### API Routes
 

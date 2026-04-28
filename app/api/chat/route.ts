@@ -1,179 +1,55 @@
 import { NextResponse } from "next/server";
 import { loadProfile } from "@/lib/profile";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { createOpenAI } from "@ai-sdk/openai";
 import { streamText } from "ai";
-import OpenAI from "openai";
 
 export const runtime = "nodejs";
 
 /**
- * LLM Provider Configuration
- * 
- * This project supports multiple LLM providers. Configure your provider using environment variables:
- * 
- * 1. OpenRouter (default): Set LLM_PROVIDER=openrouter and OPENROUTER_API_KEY
- *    - Supports multiple models from different providers
- *    - Get API key: https://openrouter.ai/keys
- *    - Models: https://openrouter.ai/models
- * 
- * 2. OpenAI: Set LLM_PROVIDER=openai and OPENAI_API_KEY
- *    - Direct OpenAI API access
- *    - Get API key: https://platform.openai.com/api-keys
- * 
- * 3. Nvidia: Set LLM_PROVIDER=nvidia and NVIDIA_API_KEY
- *    - Nvidia API integration
- *    - Get API key: https://build.nvidia.com/
- *    - Default model: deepseek-ai/deepseek-v4-pro
- * 
- * 4. Custom: Implement your own provider in the getLLMModel function below
- * 
- * The model can be configured via environment variables:
- * - OPENROUTER_MODEL (for OpenRouter)
- * - OPENAI_MODEL (for OpenAI)
- * - NVIDIA_MODEL (for Nvidia)
- * 
- * Default model: openai/gpt-4o-mini (OpenRouter), gpt-4o-mini (OpenAI), or deepseek-ai/deepseek-v4-pro (Nvidia)
+ * LLM Provider: OpenRouter
+ *
+ * Configure via environment variables:
+ * - OPENROUTER_API_KEY — get from https://openrouter.ai/keys
+ * - OPENROUTER_MODEL — optional, defaults to openai/gpt-4o-mini
+ *   See available models: https://openrouter.ai/models
  */
 
 /**
- * Gets the configured LLM model based on environment variables
- * @returns A configured model instance from the selected provider
- * @throws Error if provider is not configured correctly
+ * Gets the configured OpenRouter model
+ * @throws Error if OPENROUTER_API_KEY is not set
  */
 function getLLMModel() {
-  const provider = (process.env.LLM_PROVIDER || "openrouter").toLowerCase();
-
-  switch (provider) {
-    case "openrouter": {
-      const apiKey = process.env.OPENROUTER_API_KEY;
-      if (!apiKey) {
-        throw new Error(
-          "OpenRouter API key not set. Please set OPENROUTER_API_KEY in your environment variables."
-        );
-      }
-
-      const model = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
-      const openrouter = createOpenRouter({ apiKey });
-      
-      console.log("Using OpenRouter provider:", { model, hasApiKey: !!apiKey });
-      return openrouter(model);
-    }
-
-    case "openai": {
-      const apiKey = process.env.OPENAI_API_KEY;
-      if (!apiKey) {
-        throw new Error(
-          "OpenAI API key not set. Please set OPENAI_API_KEY in your environment variables."
-        );
-      }
-
-      const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
-      const openai = createOpenAI({ apiKey });
-      
-      console.log("Using OpenAI provider:", { model, hasApiKey: !!apiKey });
-      return openai(model);
-    }
-
-    case "nvidia": {
-      const apiKey = process.env.NVIDIA_API_KEY;
-      if (!apiKey) {
-        throw new Error(
-          "Nvidia API key not set. Please set NVIDIA_API_KEY in your environment variables."
-        );
-      }
-
-      const model = process.env.NVIDIA_MODEL || "deepseek-ai/deepseek-v4-pro";
-      const nvidiaClient = new OpenAI({
-        apiKey,
-        baseURL: "https://integrate.api.nvidia.com/v1",
-      });
-      
-      console.log("Using Nvidia provider:", { model, hasApiKey: !!apiKey });
-      
-      // Return a compatible model object that matches AI SDK interface
-      // We'll wrap the Nvidia OpenAI client to work with streamText
-      return {
-        doGenerate: async (options: any) => {
-          const completion = await nvidiaClient.chat.completions.create({
-            model,
-            messages: options.messages,
-            temperature: options.temperature ?? 0.7,
-            top_p: options.topP ?? 0.95,
-            max_tokens: options.maxTokens ?? 16384,
-            stream: false,
-          } as any);
-
-          return {
-            text: completion.choices[0]?.message?.content || "",
-            usage: {
-              promptTokens: completion.usage?.prompt_tokens ?? 0,
-              completionTokens: completion.usage?.completion_tokens ?? 0,
-              totalTokens: completion.usage?.total_tokens ?? 0,
-            },
-          };
-        },
-        doStream: async (options: any) => {
-          // For streaming, we need to handle the response properly
-          const streamResponse = await (nvidiaClient.chat.completions.create({
-            model,
-            messages: options.messages,
-            temperature: options.temperature ?? 0.7,
-            top_p: options.topP ?? 0.95,
-            max_tokens: options.maxTokens ?? 16384,
-            stream: true,
-          } as any));
-
-          return {
-            stream: (async function* () {
-              // Cast as unknown first, then to AsyncIterable to avoid type errors
-              const stream = streamResponse as unknown as AsyncIterable<any>;
-              for await (const chunk of stream) {
-                const delta = chunk.choices?.[0]?.delta;
-                if (delta?.content) {
-                  yield {
-                    type: "text-delta" as const,
-                    text: delta.content,
-                  };
-                }
-              }
-            })(),
-            rawCall: { rawPrompt: options.prompt, rawSettings: {} },
-          };
-        },
-      } as any;
-    }
-
-    // Add more providers here as needed
-    // Example for Anthropic:
-    // case "anthropic": {
-    //   const apiKey = process.env.ANTHROPIC_API_KEY;
-    //   if (!apiKey) {
-    //     throw new Error("Anthropic API key not set. Please set ANTHROPIC_API_KEY.");
-    //   }
-    //   const model = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022";
-    //   const anthropic = createAnthropic({ apiKey });
-    //   return anthropic(model);
-    // }
-
-    default:
-      throw new Error(
-        `Unsupported LLM provider: ${provider}. Supported providers: openrouter, openai, nvidia. ` +
-        `Set LLM_PROVIDER environment variable to one of these values.`
-      );
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "OpenRouter API key not set. Please set OPENROUTER_API_KEY in your environment variables."
+    );
   }
+
+  const model = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
+  const openrouter = createOpenRouter({ apiKey });
+
+  console.log("Using OpenRouter provider:", { model, hasApiKey: !!apiKey });
+  return openrouter(model);
 }
 
 // Helper function to extract text content from UIMessage parts (AI SDK v5 format)
-function extractTextFromMessage(msg: any): string {
-  // If message has 'parts' (AI SDK v5 format), extract text from parts
-  if (msg.parts && Array.isArray(msg.parts)) {
-    return msg.parts
-      .filter((part: any) => part.type === "text" && part.text)
-      .map((part: any) => part.text)
+function extractTextFromMessage(msg: Record<string, unknown>): string {
+  const parts = msg.parts;
+  if (Array.isArray(parts)) {
+    return parts
+      .filter(
+        (part: unknown): part is { type: string; text: string } =>
+          typeof part === "object" &&
+          part !== null &&
+          "type" in part &&
+          (part as Record<string, unknown>).type === "text" &&
+          "text" in part &&
+          typeof (part as Record<string, unknown>).text === "string"
+      )
+      .map((part) => part.text)
       .join("");
   }
-  // Fallback to 'content' field (legacy format)
   return String(msg.content || "").trim();
 }
 
@@ -213,20 +89,9 @@ export async function POST(req: Request) {
 
     // Get configured LLM model
     let llmModel;
-    let modelName: string;
+    const modelName = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
     try {
       llmModel = getLLMModel();
-      // Extract model name for logging (this is provider-specific)
-      const provider = (process.env.LLM_PROVIDER || "openrouter").toLowerCase();
-      if (provider === "openrouter") {
-        modelName = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
-      } else if (provider === "openai") {
-        modelName = process.env.OPENAI_MODEL || "gpt-4o-mini";
-      } else if (provider === "nvidia") {
-        modelName = process.env.NVIDIA_MODEL || "deepseek-ai/deepseek-v4-pro";
-      } else {
-        modelName = "unknown";
-      }
     } catch (modelError) {
       console.error("Error configuring LLM model:", modelError);
       const errorMessage = modelError instanceof Error ? modelError.message : String(modelError);
@@ -274,41 +139,36 @@ export async function POST(req: Request) {
     }
 
     try {
-      // Use streamText from AI SDK with the configured model
-      // Note: Type assertion needed due to different model types from different providers
       const result = streamText({
-        model: llmModel as any,
+        model: llmModel,
         system: systemPrompt,
         messages: cleanedMessages,
       });
 
-      // Consume the stream and merge into text stream response
-      // This ensures proper streaming to the useChat hook
       return result.toTextStreamResponse({
         headers: {
           "Content-Type": "text/plain; charset=utf-8",
           "x-model-used": modelName,
-          "x-provider": process.env.LLM_PROVIDER || "openrouter",
+          "x-provider": "openrouter",
         },
       });
     } catch (error) {
       console.error("Error calling LLM:", error);
       const errorMsg = error instanceof Error ? error.message : String(error);
-      const provider = process.env.LLM_PROVIDER || "openrouter";
-      
+
       if (error instanceof Error && (error.message.includes('fetch failed') || error.message.includes('ETIMEDOUT'))) {
         return NextResponse.json(
           {
             error: "Network error",
-            message: `Error de conexión con ${provider}. Por favor, verifica tu conexión e intenta de nuevo.`,
+            message: "Error de conexión con OpenRouter. Por favor, verifica tu conexión e intenta de nuevo.",
           },
           { status: 503 }
         );
       }
-      
+
       return NextResponse.json(
         {
-          error: `Error calling ${provider} AI`,
+          error: "Error calling OpenRouter AI",
           message: errorMsg,
         },
         { status: 500 }
